@@ -5,13 +5,13 @@
 
 AstroCatalog::IndexNumber SimpleAstroCatalog::getIndexNumberByName(const std::string &name)
 {
-    char extra[4];
     if (compareIgnoringCase(name, m_prefix, m_prefix.length()) == 0)
     {
         IndexNumber num;
         // Use scanf to see if we have a valid catalog number; it must be
         // of the form: <prefix> <non-negative integer>  No additional
         // characters other than whitespace are allowed after the number.
+        char extra[4];
         if (std::sscanf(name.c_str() + m_prefix.length(), " %u %c", &num, extra) == 1)
         {
             return num;

@@ -3,6 +3,14 @@
 
 const char *AstroDatabase::CatalogPrefix[AstroDatabase::MaxBuiltinCatalog] = { "CEL", "HD", "Gliese", "SAO", "HIP", "TYC" };
 
+AstroObject *AstroDatabase::getObject(AstroCatalog::IndexNumber nr) const
+{
+    MainIndex::const_iterator it = m_mainIndex.find(nr);
+    if (it == m_mainIndex.end())
+        return nullptr;
+    return it->second;
+}
+
 AstroCatalog::IndexNumber AstroDatabase::searchCrossIndexForCatalogNumber(int catalog, AstroCatalog::IndexNumber nr) const
 {
     std::unordered_map<int, CrossIndex*>::const_iterator it = m_catxindex.find(catalog);

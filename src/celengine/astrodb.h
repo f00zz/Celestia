@@ -3,16 +3,14 @@
 #include <unordered_map>
 #include "selection.h"
 #include "name.h"
+#include "astroobj.h"
 #include "astrocat.h"
 
 class AstroDatabase {
 public:
-    class Entry : public Selection{
-        AstroCatalog::IndexNumber m_celNumber;
-    public:
-        AstroCatalog::IndexNumber getIndex() const { return m_celNumber; }
-    };
+    
     typedef std::unordered_map<AstroCatalog::IndexNumber, AstroCatalog::IndexNumber> CrossIndex;
+    typedef std::unordered_map<AstroCatalog::IndexNumber, AstroObject*> MainIndex;
     
     enum Catalog
     {
@@ -27,7 +25,7 @@ public:
     
     static const char *CatalogPrefix[MaxBuiltinCatalog];
     
-    Entry getObject(AstroCatalog::IndexNumber nr) { return m_mainIndex[nr]; };
+    AstroObject *getObject(AstroCatalog::IndexNumber nr) const;
     size_t size() const { return m_mainIndex.size(); };
     
     AstroCatalog::IndexNumber findCatalogNumberByName(const std::string&) const;
@@ -51,7 +49,7 @@ public:
     bool addCatalogNumber(AstroCatalog::IndexNumber, int, AstroCatalog::IndexNumber);
     
 protected:
-    std::unordered_map<AstroCatalog::IndexNumber, Entry> m_mainIndex;
+    MainIndex m_mainIndex;
     std::unordered_map<int, AstroCatalog*> m_catalogs;
     std::unordered_map<const char *, Catalog> m_prefixCatalog;
     std::unordered_map<int, CrossIndex*> m_catxindex;
