@@ -7,6 +7,8 @@
 #include "star.h"
 #include "astrodb.h"
 
+#undef NDEBUG
+
 using namespace std;
 
 /*! Load an STC file with star definitions. Each definition has the form:
@@ -42,7 +44,7 @@ using namespace std;
  *  Modify <name>     : error
  *  Modify <number>   : error
  */
-bool StarSTCDataLoader::load(istream &in)
+bool StcDataLoader::load(istream &in)
 {
     Tokenizer tokenizer(&in);
     Parser parser(&tokenizer);
@@ -60,20 +62,23 @@ bool StarSTCDataLoader::load(istream &in)
         {
             if (tokenizer.getNameValue() == "Modify")
             {
+//                 clog << "New entry with disposition: Modify.\n";
                 disposition = DataDisposition::Modify;
                 tokenizer.nextToken();
             }
             else if (tokenizer.getNameValue() == "Replace")
             {
+//                 clog << "New entry with disposition: Replace.\n";
                 disposition = DataDisposition::Replace;
                 tokenizer.nextToken();
             }
             else if (tokenizer.getNameValue() == "Add")
             {
+//                 clog << "New entry with disposition: Add.\n";
                 disposition = DataDisposition::Add;
                 tokenizer.nextToken();
-            }
-        }
+            }// else clog << "New entry with unrecognized disposition type: " << tokenizer.getNameValue() << endl;
+        }// else clog << "New entry with default disposition: Add.\n";
 
         // Parse the object type--either Star or Barycenter. The object type
         // may be omitted. The default is Star.
@@ -95,6 +100,7 @@ bool StarSTCDataLoader::load(istream &in)
             tokenizer.nextToken();
         }
 
+//         clog << " Is star: " << isStar << endl;
         // Parse the catalog number; it may be omitted if a name is supplied.
         AstroCatalog::IndexNumber catalogNumber = AstroCatalog::InvalidIndex;
         if (tokenizer.getTokenType() == Tokenizer::TokenNumber)
@@ -129,15 +135,18 @@ bool StarSTCDataLoader::load(istream &in)
             star = new Star();
             star->setMainIndexNumber(catalogNumber);
             isNewStar = true;
+//             clog << " Add: About to add star with nr: " << catalogNumber << endl;
             if (m_db->addStar(star))
+            {
                 catalogNumber = star->getMainIndexNumber();
+//                 clog << " Add: Added star with nr " << catalogNumber << endl;
+            }
             else
             {
-                clog << "Unable to add star with index " << star->getMainIndexNumber() << endl;
+//                 clog << " Unable to add star with index " << star->getMainIndexNumber() << endl;
                 delete star;
                 ok = false;
             }
-
             break;
 
         case DataDisposition::Replace:
@@ -152,11 +161,15 @@ bool StarSTCDataLoader::load(istream &in)
             if (catalogNumber == AstroCatalog::InvalidIndex)
             {
                 star = new Star();
+//                 clog << " Replace: About to add star with nr: " << catalogNumber << endl;
                 if (m_db->addStar(star))
+                {
                     catalogNumber = star->getMainIndexNumber();
+//                     clog << " Replace: Added star with nr " << catalogNumber << endl;
+                }
                 else
                 {
-                    clog << "Unable to add star with index " << star->getMainIndexNumber() << endl;
+//                     clog << " Unable to add star with index " << star->getMainIndexNumber() << endl;
                     delete star;
                     ok = false;
                 }
@@ -169,12 +182,13 @@ bool StarSTCDataLoader::load(istream &in)
                 {
                     star = new Star();
                     star->setMainIndexNumber(catalogNumber);
+//                     clog << " Replace 2: About to add star with nr: " << catalogNumber << endl;
                     if (!m_db->addStar(star))
                     {
-                        clog << "Unable to add star with index " << star->getMainIndexNumber() << endl;
+//                         clog << " Unable to add star with index " << star->getMainIndexNumber() << endl;
                         delete star;
                         ok = false;
-                    }
+                    }// else clog << " Replace 2: Added star with nr " << catalogNumber << endl;
                 }
             }
             break;
@@ -186,16 +200,16 @@ bool StarSTCDataLoader::load(istream &in)
                 catalogNumber = m_db->findCatalogNumberByName(firstName);
             }
 
-            if (catalogNumber == Star::InvalidCatalogNumber)
+            if (catalogNumber == AstroCatalog::InvalidIndex)
             {
-                clog << "No star index to modify.\n";
+//                 clog << " No star index to modify.\n";
                 ok = false;
                 break;
             }
             star = m_db->getStar(catalogNumber);
             if (star == nullptr)
             {
-                clog << "Unable to find star with index " << catalogNumber << ".\n";
+//                 clog << " Unable to find star with index " << catalogNumber << ".\n";
                 ok = false;
             }
             break;
@@ -206,30 +220,29 @@ bool StarSTCDataLoader::load(istream &in)
         Value* starDataValue = parser.readValue();
         if (starDataValue == nullptr)
         {
-            clog << "Error reading star.\n";
+            clog << " Error reading star.\n";
             return false;
         }
 
         if (starDataValue->getType() != Value::HashType)
         {
-            DPRINTF(0, "Bad star definition.\n");
+//            clog << " Bad star definition.\n";
             delete starDataValue;
             return false;
         }
         Hash* starData = starDataValue->getHash();
 
-        if (isNewStar)
-            star = new Star();
+/*        if (isNewStar)
+            star = new Star();*/
 
-        if (isNewStar && disposition == DataDisposition::Modify)
+        if (ok)
         {
-            clog << "Modify requested for nonexistent star.\n";
-        }
-        else
-        {
-            ok = Star::createStar(star, disposition, catalogNumber, starData, resourcePath, !isStar, m_db);
+//            clog << " About to create star with nr " << star->getMainIndexNumber() << endl;
+            ok = Star::createStar(star, disposition, starData, resourcePath, !isStar, m_db);
+            if (star->getDetails() == nullptr)
+//                 clog << " Created star has null details!\n";
             star->loadCategories(starData, disposition, resourcePath);
-        }
+        } //else clog << " Errors while preparing star, skipping creation.\n";
         delete starDataValue;
 
         if (ok)
@@ -256,6 +269,7 @@ bool StarSTCDataLoader::load(istream &in)
                     }
                     string starName = objName.substr(startPos, length);
                     m_db->addName(catalogNumber, starName);
+                    clog << " Adding name \"" << starName << "\" for entry nr " << catalogNumber << endl;
                     if (starName != _(starName.c_str()))
                         m_db->addName(catalogNumber, _(starName.c_str()));
                     startPos = next;
@@ -266,8 +280,9 @@ bool StarSTCDataLoader::load(istream &in)
         {
             if (isNewStar)
                 delete star;
-            DPRINTF(1, "Bad star definition--will continue parsing file.\n");
+//             clog << "Bad star definition -- will continue parsing file.\n";
         }
+//         clog << "End parsing entry.\n";
     }
 
     return true;

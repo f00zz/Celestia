@@ -944,7 +944,6 @@ StarDetails::setInfoURL(const string& _infoURL)
     infoURL = _infoURL;
 }
 
-
 Star::~Star()
 {
     // TODO: Implement reference counting for StarDetails objects so that
@@ -1083,14 +1082,14 @@ Star::getVelocity(double t) const
 MultiResTexture
 Star::getTexture() const
 {
-    return details->getTexture();
+    return getDetails()->getTexture();
 }
 
 
 ResourceHandle
 Star::getGeometry() const
 {
-    return details->getGeometry();
+    return getDetails()->getGeometry();
 }
 
 
@@ -1100,13 +1099,7 @@ Star::getGeometry() const
 const string&
 Star::getInfoURL() const
 {
-    return details->getInfoURL();
-}
-
-
-void Star::setCatalogNumber(uint32_t n)
-{
-    catalogNumber = n;
+    return getDetails()->getInfoURL();
 }
 
 void Star::setPosition(float x, float y, float z)
@@ -1143,6 +1136,8 @@ void Star::setLuminosity(float lum)
 
 StarDetails* Star::getDetails() const
 {
+    if (details == nullptr)
+        clog << "Details of star nr " << getMainIndexNumber() << " is null pointer! Disaster is coming!\n";
     return details;
 }
 
@@ -1154,28 +1149,28 @@ void Star::setDetails(StarDetails* sd)
 
 void Star::setOrbitBarycenter(Star* s)
 {
-    if (details->shared())
+    if (getDetails()->shared())
         details = new StarDetails(*details);
-    details->setOrbitBarycenter(s);
+    getDetails()->setOrbitBarycenter(s);
 }
 
 void Star::computeOrbitalRadius()
 {
-    details->computeOrbitalRadius();
+    getDetails()->computeOrbitalRadius();
 }
 
 void
 Star::setRotationModel(const RotationModel* rm)
 {
-    details->setRotationModel(rm);
+    getDetails()->setRotationModel(rm);
 }
 
 void
 Star::addOrbitingStar(Star* star)
 {
-    if (details->shared())
+    if (getDetails()->shared())
         details = new StarDetails(*details);
-    details->addOrbitingStar(star);
+    getDetails()->addOrbitingStar(star);
 }
 
 Selection Star::toSelection()
@@ -1186,7 +1181,6 @@ Selection Star::toSelection()
 
 bool Star::createStar(Star* star,
                             DataDisposition disposition,
-                            uint32_t catalogNumber,
                             Hash* starData,
                             const string& path,
                             bool isBarycenter,
@@ -1289,6 +1283,9 @@ bool Star::createStar(Star* star,
 
     Orbit* orbit = CreateOrbit(Selection(), starData, path, true);
 
+    if (!modifyExistingDetails)
+        star->setDetails(details);
+
     if (hasTexture              ||
         hasModel                ||
         orbit != nullptr        ||
@@ -1305,8 +1302,10 @@ bool Star::createStar(Star* star,
         bool free_details = false;
         if (!modifyExistingDetails)
         {
+//             clog << "  Cloning star details...\n";
             details = new StarDetails(*details);
             free_details = true;
+            star->setDetails(details);
         }
 
         if (hasTexture)
@@ -1367,7 +1366,7 @@ bool Star::createStar(Star* star,
             details->setOrbit(orbit);
 
             // See if a barycenter was specified as well
-            uint32_t barycenterCatNo = Star::InvalidCatalogNumber;
+            uint32_t barycenterCatNo = AstroCatalog::InvalidIndex;
             bool barycenterDefined = false;
 
             string barycenterName;
@@ -1385,9 +1384,15 @@ bool Star::createStar(Star* star,
             {
                 if (barycenterCatNo != AstroCatalog::InvalidIndex)
                 {
+//                     clog << "  requesting barycenter with nr " << barycenterCatNo << endl;
                     Star* barycenter = db->getStar(barycenterCatNo);
                     if (barycenter != nullptr)
                     {
+//                         clog << "  Requested barycenter exists...\n";
+//                         if (barycenter->getDetails() == nullptr)
+//                             clog << "  ...but coresponding details not!\n";
+//                         else
+//                             clog << "  ...as well as coresponding details.\n";
                         hasBarycenter = true;
                         barycenterPosition = barycenter->getPosition();
                         star->setOrbitBarycenter(barycenter);
@@ -1410,10 +1415,8 @@ bool Star::createStar(Star* star,
             details->setRotationModel(rm);
     }
 
-    if (!modifyExistingDetails)
-        star->setDetails(details);
-    if (disposition != DataDisposition::Modify)
-        star->setCatalogNumber(catalogNumber);
+/*    if (disposition != DataDisposition::Modify)
+        star->setMainIndexNumber(catalogNumber);*/
 
     // Compute the position in rectangular coordinates.  If a star has an
     // orbit and barycenter, it's position is the position of the barycenter.

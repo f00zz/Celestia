@@ -9,10 +9,10 @@ class AstroDatabase;
 class UserCategory;
 
 class AstroObject {
-    AstroCatalog::IndexNumber m_mainIndexNumber;
-    AstroDatabase *m_db;
+    AstroCatalog::IndexNumber m_mainIndexNumber { AstroCatalog::InvalidIndex };
+    AstroDatabase *m_db { nullptr };
 public:
-    AstroObject() { m_db = nullptr; m_mainIndexNumber = AstroCatalog::InvalidIndex; }
+    AstroObject() = default;
     AstroObject(AstroDatabase *db, AstroCatalog::IndexNumber nr = AstroCatalog::InvalidIndex) { m_db = db; m_mainIndexNumber = nr; }
     AstroCatalog::IndexNumber getMainIndexNumber() const { return m_mainIndexNumber; }
     void setMainIndexNumber(AstroCatalog::IndexNumber nr) { m_mainIndexNumber = nr; }
