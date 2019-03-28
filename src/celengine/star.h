@@ -25,6 +25,7 @@
 class Selection;
 class Orbit;
 class Star;
+class AstroDatabase;
 
 class StarDetails
 {
@@ -310,6 +311,13 @@ public:
         InvalidCatalogNumber = 0xffffffff,
     };
 
+    static bool createStar(Star* star,
+                        DataDisposition disposition,
+                        AstroCatalog::IndexNumber catalogNumber,
+                        Hash* starData,
+                        const string& path,
+                        bool isBarycenter,
+                        AstroDatabase *);
 private:
     uint32_t catalogNumber{ InvalidCatalogNumber };
     Eigen::Vector3f position{ Eigen::Vector3f::Zero() };
