@@ -15,6 +15,8 @@ int main()
     AstroDatabase adb;
     StcDataLoader loader(&adb);
     bool ret = loader.load(string("data/nearstars.stc"));
+    assert(adb.getStar(70890) != nullptr);
+    assert(adb.findCatalogNumberByName("Gliese 423") == 55203);
     cout << "Data loaded with status: " << ret << endl;
     return 0;
 }

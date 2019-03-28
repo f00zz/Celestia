@@ -16,7 +16,8 @@ bool AstroDataLoader::load(const string& fname, bool cType)
     }
 
     fstream stream(fname, ios::in);
-    if (!stream.good()) {
+    if (!stream.good())
+    {
         clog << "Error while loading content from \"" << fname <<"\": cannot open file.\n";
         return false;
     }

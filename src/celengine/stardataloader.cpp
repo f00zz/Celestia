@@ -239,7 +239,7 @@ bool StcDataLoader::load(istream &in)
         {
 //            clog << " About to create star with nr " << star->getMainIndexNumber() << endl;
             ok = Star::createStar(star, disposition, starData, resourcePath, !isStar, m_db);
-            if (star->getDetails() == nullptr)
+//            if (star->getDetails() == nullptr)
 //                 clog << " Created star has null details!\n";
             star->loadCategories(starData, disposition, resourcePath);
         } //else clog << " Errors while preparing star, skipping creation.\n";
@@ -247,7 +247,6 @@ bool StcDataLoader::load(istream &in)
 
         if (ok)
         {
-
             if (!objName.empty())
             {
                 // List of namesDB will replace any that already exist for
@@ -270,8 +269,9 @@ bool StcDataLoader::load(istream &in)
                     string starName = objName.substr(startPos, length);
                     m_db->addName(catalogNumber, starName);
                     clog << " Adding name \"" << starName << "\" for entry nr " << catalogNumber << endl;
-                    if (starName != _(starName.c_str()))
-                        m_db->addName(catalogNumber, _(starName.c_str()));
+                    auto localName = _(starName.c_str());
+                    if (starName != localName)
+                        m_db->addName(catalogNumber, localName);
                     startPos = next;
                 }
             }
