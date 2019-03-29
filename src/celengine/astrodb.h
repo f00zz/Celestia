@@ -66,10 +66,7 @@ class AstroDatabase {
     bool addBody(Body *);
     Star *getStar(AstroCatalog::IndexNumber) const;
 
-    AstroCatalog::IndexNumber findCatalogNumberByName(const std::string &name)
-    {
-        return m_nameDB.findCatalogNumberByName(name);
-    }
+    AstroCatalog::IndexNumber findCatalogNumberByName(const std::string &, bool = true);
 
     void addName(AstroCatalog::IndexNumber nr, const std::string &name)
     {
