@@ -17,3 +17,13 @@ class StcDataLoader : public AstroDataLoader
         fmt::fprintf(cerr,  _("Error in .stc file (line %i): %s\n"), tok.getLineNumber(), msg);
     }
 };
+
+class StarBinDataLoader : public AstroDataLoader
+{
+ public:
+    static constexpr const char FILE_HEADER[] = "CELSTARS";
+    StarBinDataLoader() = default;
+    StarBinDataLoader(AstroDatabase *db) { m_db = db; }
+    using AstroDataLoader::load;
+    virtual bool load(std::istream &);
+};
