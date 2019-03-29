@@ -1402,7 +1402,7 @@ bool Star::createStar(Star* star,
 
                 if (!hasBarycenter)
                 {
-                    fmt::fprintf(cerr, _("Barycenter %s does not exist.\n"), barycenterName);
+                    fmt::fprintf(cerr, _("Barycenter %s of star nr %u does not exist.\n"), barycenterName, star->getMainIndexNumber());
                     delete rm;
                     if (free_details)
                         delete details;
