@@ -26,12 +26,12 @@ bool nameAddition(AstroDatabase &db, AstroCatalog::IndexNumber nr, const string&
 {
     bool ret = true;
     db.addName(nr, name);
-    if (db.findCatalogNumberByName(name) == AstroCatalog::InvalidIndex)
+    if (db.findMainIndexByName(name) == AstroCatalog::InvalidIndex)
     {
         cerr << "Name \"" << name << "\" doesn't exists in database.\n";
         ret = false;
     }
-    AstroCatalog::IndexNumber inr = db.findCatalogNumberByName(name);
+    AstroCatalog::IndexNumber inr = db.findMainIndexByName(name);
     if (inr != nr)
     {
         cerr << "Name \"" << name << "\" has wrong number! - " << inr << " (should be " << nr << ")\n";
@@ -77,7 +77,7 @@ int main()
 
     objectNames(adb, 55203);
     assert(adb.getStar(70890) != nullptr);
-    assert(adb.findCatalogNumberByName("Gliese 423") == 55203);
-    assert(adb.findCatalogNumberByName("ALF Cen") != AstroCatalog::InvalidIndex);
+    assert(adb.findMainIndexByName("Gliese 423") == 55203);
+    assert(adb.findMainIndexByName("ALF Cen") != AstroCatalog::InvalidIndex);
     return 0;
 }
