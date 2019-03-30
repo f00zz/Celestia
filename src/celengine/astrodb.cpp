@@ -49,7 +49,7 @@ AstroCatalog::IndexNumber AstroDatabase::findMainIndexByName(const std::string& 
     if (tryGreek)
     {
         string fname = ReplaceGreekLetterAbbr(name);
-        nr = m_nameDB.findIndexNumberByName(name);
+        nr = m_nameDB.findIndexNumberByName(fname);
         if (nr != AstroCatalog::InvalidIndex)
             return nr;
     }

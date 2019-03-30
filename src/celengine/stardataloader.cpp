@@ -285,8 +285,7 @@ bool StcDataLoader::load(istream &in)
                         ++next;
                     }
                     string starName = objName.substr(startPos, length);
-                    if (m_db->findMainIndexByName(starName) == AstroCatalog::InvalidIndex)
-                        m_db->addName(catalogNumber, starName);
+                    m_db->addName(catalogNumber, starName);
 //                     clog << " Adding name \"" << starName << "\" for entry nr " << catalogNumber << endl;
                     auto localName = _(starName.c_str());
                     if (starName != localName)
