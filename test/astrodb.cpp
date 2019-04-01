@@ -7,6 +7,7 @@
 #include <celengine/stardataloader.h>
 #include <celengine/namedataloader.h>
 #include <celengine/xindexdataloader.h>
+#include <celengine/dsodataloader.h>
 
 using namespace std;
 
@@ -52,6 +53,7 @@ int main()
     StcDataLoader stcloader(&adb);
     NameDataLoader nloader(&adb);
     CrossIndexDataLoader xloader(&adb);
+    DscDataLoader dsoloader(&adb);
 
     ret = binloader.load(string("data/stars.dat"));
     cout << "Star binary data loaded with status: " << ret << endl;
@@ -71,6 +73,9 @@ int main()
     xloader.catalog = AstroDatabase::Gliese;
     ret = xloader.load("data/hdxindex.dat");
     cout << "Gliese HD data loaded with status: " << ret << endl;
+
+    ret = dsoloader.load("data/galaxies.dsc");
+    cout << "Dsc data loaded with status: " << ret << endl;
 
     nameAddition(adb, 0, "Olaf Cen");
     nameAddition(adb, 0, "ALF Centauri");
