@@ -121,7 +121,7 @@ string Selection::getName(bool i18n) const
 
     case Type_DeepSky:
         {
-            return fmt::sprintf("#%d", deepsky()->getCatalogNumber());
+            return fmt::sprintf("#%d", deepsky()->getMainIndexNumber());
         }
 
     case Type_Body:

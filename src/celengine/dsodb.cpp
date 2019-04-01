@@ -55,7 +55,7 @@ struct PtrCatalogNumberOrderingPredicate
 
     bool operator()(const DeepSkyObject* const & dso0, const DeepSkyObject* const & dso1) const
     {
-        return (dso0->getCatalogNumber() < dso1->getCatalogNumber());
+        return (dso0->getMainIndexNumber() < dso1->getMainIndexNumber());
     }
 };
 
@@ -70,14 +70,14 @@ DSODatabase::~DSODatabase()
 DeepSkyObject* DSODatabase::find(const uint32_t catalogNumber) const
 {
     Galaxy refDSO;  //terrible hack !!
-    refDSO.setCatalogNumber(catalogNumber);
+    refDSO.setMainIndexNumber(catalogNumber);
 
     DeepSkyObject** dso   = lower_bound(catalogNumberIndex,
                                         catalogNumberIndex + nDSOs,
                                         &refDSO,
                                         PtrCatalogNumberOrderingPredicate());
 
-    if (dso != catalogNumberIndex + nDSOs && (*dso)->getCatalogNumber() == catalogNumber)
+    if (dso != catalogNumberIndex + nDSOs && (*dso)->getMainIndexNumber() == catalogNumber)
         return *dso;
     else
         return nullptr;
@@ -92,7 +92,7 @@ DeepSkyObject* DSODatabase::find(const string& name) const
     if (namesDB != nullptr)
     {
         uint32_t catalogNumber   = namesDB->findCatalogNumberByName(name);
-        if (catalogNumber != DeepSkyObject::InvalidCatalogNumber)
+        if (catalogNumber != AstroCatalog::InvalidIndex)
             return find(catalogNumber);
     }
 
@@ -114,7 +114,7 @@ vector<string> DSODatabase::getCompletion(const string& name) const
 
 string DSODatabase::getDSOName(const DeepSkyObject* const & dso, bool i18n) const
 {
-    uint32_t catalogNumber    = dso->getCatalogNumber();
+    uint32_t catalogNumber    = dso->getMainIndexNumber();
 
     if (namesDB != nullptr)
     {
@@ -136,7 +136,7 @@ string DSODatabase::getDSONameList(const DeepSkyObject* const & dso, const unsig
 {
     string dsoNames;
 
-    unsigned int catalogNumber   = dso->getCatalogNumber();
+    unsigned int catalogNumber   = dso->getMainIndexNumber();
 
     DSONameDatabase::NumberIndex::const_iterator iter  = namesDB->getFirstNameIter(catalogNumber);
 
@@ -236,7 +236,7 @@ bool DSODatabase::load(istream& in, const string& resourcePath)
         objType = tokenizer.getNameValue();
 
         bool   autoGenCatalogNumber   = true;
-        uint32_t objCatalogNumber       = DeepSkyObject::InvalidCatalogNumber;
+        uint32_t objCatalogNumber       = AstroCatalog::InvalidIndex;
         if (tokenizer.getTokenType() == Tokenizer::TokenNumber)
         {
             autoGenCatalogNumber   = false;
@@ -307,7 +307,7 @@ bool DSODatabase::load(istream& in, const string& resourcePath)
 
             DSOs[nDSOs++] = obj;
 
-            obj->setCatalogNumber(objCatalogNumber);
+            obj->setMainIndexNumber(objCatalogNumber);
 
             if (namesDB != nullptr && !objName.empty())
             {

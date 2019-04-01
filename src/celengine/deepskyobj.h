@@ -39,12 +39,6 @@ class DeepSkyObject : public AstroObject
     DeepSkyObject() = default;
     virtual ~DeepSkyObject() = default;
 
-    inline uint32_t getCatalogNumber() const
-    {
-        return catalogNumber;
-    }
-    void setCatalogNumber(uint32_t);
-
     Eigen::Vector3d getPosition() const;
     void setPosition(const Eigen::Vector3d&);
 
@@ -98,13 +92,7 @@ class DeepSkyObject : public AstroObject
     virtual unsigned int getRenderMask() const { return 0; }
     virtual unsigned int getLabelMask() const { return 0; }
 
-    enum : uint32_t
-    {
-        InvalidCatalogNumber = 0xffffffff
-    };
-
  private:
-    uint32_t     catalogNumber{ InvalidCatalogNumber };
     Eigen::Vector3d position{ Eigen::Vector3d::Zero() };
     Eigen::Quaternionf orientation{ Eigen::Quaternionf::Identity() };
     float        radius{ 1 };
