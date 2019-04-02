@@ -36,7 +36,12 @@ class AstroDatabase {
 
     static constexpr array<const char *, AstroDatabase::MaxBuiltinCatalog> CatalogPrefix  = { "HD", "Gliese", "SAO", "HIP", "TYC" };
 
-    AstroObject *getObject(AstroCatalog::IndexNumber nr) const;
+    AstroObject *getObject(AstroCatalog::IndexNumber) const;
+    AstroObject *getObject(const std::string&) const;
+    Star *getStar(AstroCatalog::IndexNumber) const;
+    DeepSkyObject *getDSO(AstroCatalog::IndexNumber) const;
+    Star *getStar(const std::string&) const;
+    DeepSkyObject *getDSO(const std::string&) const;
     size_t size() const { return m_mainIndex.size(); };
 
     AstroCatalog::IndexNumber nameToIndex(const std::string&, bool = true) const;
@@ -63,7 +68,6 @@ class AstroDatabase {
     bool addStar(Star *);
     bool addDSO(DeepSkyObject *);
     bool addBody(Body *);
-    Star *getStar(AstroCatalog::IndexNumber) const;
 
     void addName(AstroCatalog::IndexNumber nr, const std::string &name)
     {

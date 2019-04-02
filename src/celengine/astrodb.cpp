@@ -11,6 +11,35 @@ AstroObject *AstroDatabase::getObject(AstroCatalog::IndexNumber nr) const
     return it->second;
 }
 
+AstroObject *AstroDatabase::getObject(const std::string &name) const
+{
+    return getObject(nameToIndex(name));
+}
+
+Star *AstroDatabase::getStar(AstroCatalog::IndexNumber nr) const
+{
+    Star *star = static_cast<Star*>(getObject(nr));
+    if (m_stars.count(star) > 0) return star;
+    return nullptr;
+}
+
+Star *AstroDatabase::getStar(const std::string &name) const
+{
+    return getStar(nameToIndex(name));
+}
+
+DeepSkyObject *AstroDatabase::getDSO(AstroCatalog::IndexNumber nr) const
+{
+    DeepSkyObject *dso = static_cast<DeepSkyObject*>(getObject(nr));
+    if (m_dsos.count(dso) > 0) return dso;
+    return nullptr;
+}
+
+DeepSkyObject *AstroDatabase::getDSO(const std::string &name) const
+{
+    return getDSO(nameToIndex(name));
+}
+
 AstroCatalog::IndexNumber AstroDatabase::catalogNumberToIndex(int catalog, AstroCatalog::IndexNumber nr) const
 {
     std::unordered_map<int, CrossIndex*>::const_iterator it = m_catxindex.find(catalog);
@@ -188,16 +217,6 @@ bool AstroDatabase::addBody(Body *body)
         return false;
     m_bodies.insert(body);
     return true;
-}
-
-Star *AstroDatabase::getStar(AstroCatalog::IndexNumber nr) const
-{
-    MainIndex::const_iterator it = m_mainIndex.find(nr);
-    if (it == m_mainIndex.end())
-        return nullptr;
-    if (m_stars.count(static_cast<Star*>(it->second)) == 0)
-        return nullptr;
-    return static_cast<Star*>(it->second);
 }
 
 void AstroDatabase::createBuildinCatalogs()
