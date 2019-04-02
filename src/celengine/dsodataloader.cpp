@@ -69,7 +69,7 @@ bool DscDataLoader::load(istream& in)
             obj->loadCategories(objParams, DataDisposition::Add, resourcePath);
             delete objParamsValue;
 
-            obj->setMainIndexNumber(objCatalogNumber);
+            obj->setIndex(objCatalogNumber);
 
             if (!m_db->addDSO(obj))
             {
