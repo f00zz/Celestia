@@ -28,13 +28,9 @@ class AstroDatabase {
         MaxBuiltinCatalog = 5
     };
 
-/*    struct BarycenterUsage
-    { // Do we really need this?
-        uint32_t catNo;
-        uint32_t barycenterCatNo;
-    };*/
-
     static constexpr array<const char *, AstroDatabase::MaxBuiltinCatalog> CatalogPrefix  = { "HD", "Gliese", "SAO", "HIP", "TYC" };
+
+    AstroDatabase();
 
     AstroObject *getObject(AstroCatalog::IndexNumber) const;
     AstroObject *getObject(const std::string&) const;
@@ -86,11 +82,6 @@ class AstroDatabase {
         return m_stars;
     }
 
-    AstroDatabase()
-    {
-        m_autoIndex = AutoIndexMax;
-    }
-
  protected:
     MainIndex m_mainIndex;
     std::unordered_map<int, AstroCatalog*> m_catalogs;
@@ -106,9 +97,9 @@ class AstroDatabase {
 
     AstroCatalog::IndexNumber m_autoIndex;
     static const AstroCatalog::IndexNumber AutoIndexMax = UINT_MAX - 1;
-    static const AstroCatalog::IndexNumber AutoIndexMin = UINT_MAX / 2;
+    static const AstroCatalog::IndexNumber AutoIndexMin = HipparcosAstroCatalog::MaxCatalogNumber + 1;
 
     AstroCatalog::IndexNumber getAutoIndex();
 
-    void createBuildinCatalogs();
+    void createBuiltinCatalogs();
 };

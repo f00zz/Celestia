@@ -54,3 +54,5 @@ std::string TychoAstroCatalog::catalogNumberToName(IndexNumber index)
     uint32_t tyc1 = index;
     return fmt::sprintf("%s %u-%u-%u", m_prefix, tyc1, tyc2, tyc3);
 }
+
+constexpr int HipparcosAstroCatalog::MaxCatalogNumber;

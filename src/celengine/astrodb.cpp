@@ -3,6 +3,12 @@
 
 constexpr array<const char *, AstroDatabase::MaxBuiltinCatalog> AstroDatabase::CatalogPrefix;
 
+AstroDatabase::AstroDatabase() :
+    m_autoIndex(AutoIndexMax)
+{
+    createBuiltinCatalogs();
+}
+
 AstroObject *AstroDatabase::getObject(AstroCatalog::IndexNumber nr) const
 {
     MainIndex::const_iterator it = m_mainIndex.find(nr);
@@ -241,7 +247,7 @@ void AstroDatabase::addNames(AstroCatalog::IndexNumber nr, const string &names) 
     }
 }
 
-void AstroDatabase::createBuildinCatalogs()
+void AstroDatabase::createBuiltinCatalogs()
 {
     m_catalogs.insert(std::make_pair(HenryDrapper, new HenryDrapperCatalog()));
     m_catalogs.insert(std::make_pair(Gliese, new GlieseAstroCatalog()));

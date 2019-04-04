@@ -231,6 +231,10 @@ bool StcDataLoader::load(istream &in)
             break;
         }
 
+//         For backward compatibility: index within HIP numbers range is supposed to be valid HIP number
+        if (ok && catalogNumber < HipparcosAstroCatalog::MaxCatalogNumber)
+            m_db->addCatalogNumber(catalogNumber, AstroDatabase::Hipparcos, catalogNumber);
+
         tokenizer.pushBack();
 
         Value* starDataValue = parser.readValue();
