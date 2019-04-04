@@ -267,31 +267,7 @@ bool StcDataLoader::load(istream &in)
         {
             if (!objName.empty())
             {
-                // List of namesDB will replace any that already exist for
-                // this star.
-//                m_db->eraseNames(catalogNumber);
-
-                // Iterate through the string for names delimited
-                // by ':', and insert them into the star database.
-                // Note that db->add() will skip empty namesDB.
-                string::size_type startPos = 0;
-                while (startPos != string::npos)
-                {
-                    string::size_type next    = objName.find(':', startPos);
-                    string::size_type length = string::npos;
-                    if (next != string::npos)
-                    {
-                        length = next - startPos;
-                        ++next;
-                    }
-                    string starName = objName.substr(startPos, length);
-                    m_db->addName(catalogNumber, starName);
-//                     clog << " Adding name \"" << starName << "\" for entry nr " << catalogNumber << endl;
-                    auto localName = _(starName.c_str());
-                    if (starName != localName)
-                        m_db->addName(catalogNumber, localName);
-                    startPos = next;
-                }
+                m_db->addNames(catalogNumber, objName);
             }
             successCount++;
         }

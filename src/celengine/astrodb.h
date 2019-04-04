@@ -74,6 +74,8 @@ class AstroDatabase {
         m_nameDB.add(nr, name);
     }
 
+    void addNames(AstroCatalog::IndexNumber, const std::string&);
+
     void eraseNames(AstroCatalog::IndexNumber nr)
     {
         m_nameDB.erase(nr);

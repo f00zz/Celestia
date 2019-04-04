@@ -219,6 +219,28 @@ bool AstroDatabase::addBody(Body *body)
     return true;
 }
 
+void AstroDatabase::addNames(AstroCatalog::IndexNumber nr, const string &names) // string containing names separated by colon
+{
+    string::size_type startPos = 0;
+    while (startPos != string::npos)
+    {
+        string::size_type next = names.find(':', startPos);
+        string::size_type length = string::npos;
+        if (next != string::npos)
+        {
+            length = next - startPos;
+            ++next;
+        }
+        string name = names.substr(startPos, length);
+        addName(nr, name);
+        string lname = _(name.c_str());
+//      fmt::printf(cerr, "Added name \"%s\" for DSO nr %u\n", DSOName, );
+        if (name != lname)
+            addName(nr, lname);
+        startPos = next;
+    }
+}
+
 void AstroDatabase::createBuildinCatalogs()
 {
     m_catalogs.insert(std::make_pair(HenryDrapper, new HenryDrapperCatalog()));

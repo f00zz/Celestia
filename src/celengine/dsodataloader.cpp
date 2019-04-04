@@ -78,26 +78,7 @@ bool DscDataLoader::load(istream& in)
             }
 
             objCatalogNumber = obj->getIndex();
-            // Iterate through the string for names delimited
-            // by ':', and insert them into the DSO database.
-            // Note that db->add() will skip empty names.
-            string::size_type startPos = 0;
-            while (startPos != string::npos)
-            {
-                string::size_type next = objName.find(':', startPos);
-                string::size_type length = string::npos;
-                if (next != string::npos)
-                {
-                    length = next - startPos;
-                    ++next;
-                }
-                string DSOName = objName.substr(startPos, length);
-                m_db->addName(objCatalogNumber, DSOName);
-//                fmt::printf(cerr, "Added name \"%s\" for DSO nr %u\n", DSOName, );
-                if (DSOName != _(DSOName.c_str()))
-                    m_db->addName(objCatalogNumber, _(DSOName.c_str()));
-                startPos   = next;
-            }
+            m_db->addNames(objCatalogNumber, objName);
         }
         else
         {
