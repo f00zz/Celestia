@@ -93,10 +93,6 @@ int main()
     cout << "Dsc data loaded with status: " << ret << endl;
 
     objectNames(adb, 55203);
-    if (adb.isInCrossIndex(AstroDatabase::Hipparcos, 55203))
-        cout << "In HIP catalog.\n";
-    else
-        cout << "Not in HIP catalog!\n";
     objectNames(adb, "C 1126+292");
     objectNames(adb, "NGC 3201");
     objectNames(adb, "36 Oph C");

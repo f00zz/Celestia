@@ -299,6 +299,7 @@ bool StarBinDataLoader::load(istream& in)
         char* header = new char[headerLength];
         in.read(header, headerLength);
         if (strncmp(header, FILE_HEADER, headerLength)) {
+            fmt::fprintf(cerr, "Bad file header!\n");
             delete[] header;
             return false;
         }
@@ -311,7 +312,10 @@ bool StarBinDataLoader::load(istream& in)
         in.read((char*) &version, sizeof version);
         LE_TO_CPU_INT16(version, version);
         if (version != 0x0100)
+        {
+            fmt::fprintf(cerr, "Bad file version!\n");
             return false;
+        }
     }
 
     // Read the star count

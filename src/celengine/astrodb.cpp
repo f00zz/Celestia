@@ -25,8 +25,7 @@ AstroObject *AstroDatabase::getObject(const std::string &name) const
 Star *AstroDatabase::getStar(AstroCatalog::IndexNumber nr) const
 {
     Star *star = static_cast<Star*>(getObject(nr));
-    if (m_stars.count(star) > 0) return star;
-    return nullptr;
+    return (m_stars.count(star) > 0) ? star : nullptr;
 }
 
 Star *AstroDatabase::getStar(const std::string &name) const
@@ -37,8 +36,7 @@ Star *AstroDatabase::getStar(const std::string &name) const
 DeepSkyObject *AstroDatabase::getDSO(AstroCatalog::IndexNumber nr) const
 {
     DeepSkyObject *dso = static_cast<DeepSkyObject*>(getObject(nr));
-    if (m_dsos.count(dso) > 0) return dso;
-    return nullptr;
+    return (m_dsos.count(dso) > 0) ? dso : nullptr;
 }
 
 DeepSkyObject *AstroDatabase::getDSO(const std::string &name) const
@@ -188,12 +186,12 @@ bool AstroDatabase::addObject(AstroObject *obj)
         obj->setIndex(getAutoIndex());
     if (obj->getIndex() == AstroCatalog::InvalidIndex)
     {
-        clog << "Error: Cannot allocate new index number!\n";
+        fmt::fprintf(cerr, "Error: Cannot allocate new index number!\n");
         return false;
     }
     if (m_mainIndex.count(obj->getIndex()) > 0)
     {
-        clog << "Error: object nr " << obj->getIndex() << " already exists!\n";
+        fmt::fprintf(cerr, "Error: object nr %u already exists!\n", obj->getIndex());
         return false;
     }
     obj->setDatabase(this);
