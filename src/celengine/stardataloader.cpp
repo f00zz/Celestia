@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <celutil/util.h>
 #include <celutil/bytes.h>
 #include <fmt/printf.h>
@@ -287,7 +288,7 @@ bool StcDataLoader::load(istream &in)
     return true;
 }
 
-constexpr const char StarBinDataLoader::FILE_HEADER[];
+const char StarBinDataLoader::FILE_HEADER[] = "CELSTARS";
 
 bool StarBinDataLoader::load(istream& in)
 {
