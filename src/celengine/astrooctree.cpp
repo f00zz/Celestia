@@ -77,14 +77,14 @@ bool OctreeNode::collapse()
 {
     if (m_children == nullptr)
         return false;
-    for (int i = 0; i < 8; i++)
+    for (auto &child : getChildren())
     {
-        (*m_children)[i]->collapse();
-        for (auto &i : (*m_children)[i]->m_stars)
+        child->collapse();
+        for (auto &i : child->getStars())
             add(i);
-        for (auto &i : (*m_children)[i]->m_dsos)
+        for (auto &i : child->getDsos())
             add(i);
-        delete (*m_children)[i];
+        delete child;
     }
     delete m_children;
     m_children = nullptr;

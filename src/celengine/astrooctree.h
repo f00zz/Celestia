@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <array>
 #include <celmath/frustum.h>
 #include "astroobj.h"
 
