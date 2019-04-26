@@ -26,26 +26,28 @@ OctreeNode::~OctreeNode()
 
 bool OctreeNode::add(Star *star)
 {
-    auto ret = m_stars.insert(star);
-    return ret.second;
+    m_stars.emplace_back(star);
+    return true;
 }
 
 bool OctreeNode::add(DeepSkyObject *dso)
 {
-    auto ret = m_dsos.insert(dso);
-    return ret.second;
+    m_dsos.emplace_back(dso);
+    return true;
 }
 
 bool OctreeNode::rm(Star *star)
 {
-    size_t s = m_stars.erase(star);
-    return s > 0 ? true : false;
+//     size_t s = m_stars.erase(star);
+//     return s > 0 ? true : false;
+    return false;
 }
 
 bool OctreeNode::rm(DeepSkyObject *dso)
 {
-    size_t s = m_dsos.erase(dso);
-    return s > 0 ? true : false;
+//     size_t s = m_dsos.erase(dso);
+//     return s > 0 ? true : false;
+    return false;
 }
 
 bool OctreeNode::split()
@@ -74,7 +76,7 @@ bool OctreeNode::split()
 }
 
 bool OctreeNode::collapse()
-{
+{/*
     if (m_children == nullptr)
         return false;
     for (auto &child : getChildren())
@@ -88,7 +90,8 @@ bool OctreeNode::collapse()
     }
     delete m_children;
     m_children = nullptr;
-    return true;
+    return true;*/
+    return false;
 }
 
 bool OctreeNode::insertObject(Star *star)

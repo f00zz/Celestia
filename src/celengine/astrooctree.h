@@ -5,7 +5,6 @@
 #include <celmath/frustum.h>
 #include "astroobj.h"
 
-
 class OctreeNode
 {
  public:
@@ -34,8 +33,8 @@ class OctreeNode
 
     OctreeNode *m_parent;
     PointType m_cellCenter;
-    std::unordered_set<Star*> m_stars;
-    std::unordered_set<DeepSkyObject*> m_dsos;
+    std::vector<Star*> m_stars;
+    std::vector<DeepSkyObject*> m_dsos;
     Children *m_children;
     double m_starExclusionFactor;
     double m_dsoExclusionFactor;
@@ -64,11 +63,14 @@ class OctreeNode
     bool removeObject(Star*);
     bool removeObject(DeepSkyObject*);
 
-    std::unordered_set<Star*>& getStars() { return m_stars; }
-    std::unordered_set<DeepSkyObject*>& getDsos() { return m_dsos; }
+    std::vector<Star*>& getStars() { return m_stars; }
+    const std::vector<Star*>& getStars() const { return m_stars; }
+    std::vector<DeepSkyObject*>& getDsos() { return m_dsos; }
+    const std::vector<DeepSkyObject*>& getDsos() const { return m_dsos; }
 
     bool hasChildren() const { return m_children != nullptr; }
     Children& getChildren() { return *m_children; }
+    const Children& getChildren() const { return *m_children; }
     OctreeNode *getChild(int n);
 
     size_t getObjectCount() const { return m_stars.size() + m_dsos.size(); }

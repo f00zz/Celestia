@@ -1,4 +1,7 @@
 
+#include "star.h"
+#include "deepskyobj.h"
+#include "astrooctree.h"
 #include "processoctree.h"
 
 using namespace Eigen;
@@ -7,8 +10,26 @@ static constexpr double SQRT3 = 1.732050807568877;
 
 static constexpr double MAX_STAR_ORBIT_RADIUS = 1;
 
+void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, Quaternionf orientation, float fovY, float aspectRatio)
+{
+    Vector3d planeNormals[5];
+    Eigen::Matrix3f rot = orientation.toRotationMatrix();
+    double h = (float) tan(fovY / 2);
+    double w = h * aspectRatio;
+    planeNormals[0] = Vector3d(0.0, 1.0, -h);
+    planeNormals[1] = Vector3d(0.0, -1.0, -h);
+    planeNormals[2] = Vector3d(1.0, 0.0, -w);
+    planeNormals[3] = Vector3d(-1.0, 0.0, -w);
+    planeNormals[4] = Vector3d(0.0, 0.0, -1.0);
+    for (int i = 0; i < 5; i++)
+    {
+        planeNormals[i] = rot.cast<double>().transpose() * planeNormals[i].normalized();
+        frustumPlanes[i] = Frustum::PlaneType(planeNormals[i].cast<float>(), position.cast<float>());
+    }
+}
+
 void processVisibleStars(
-    OctreeNode *node,
+    const OctreeNode *node,
     StarProcesor& procesor,
     const Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
@@ -55,8 +76,22 @@ void processVisibleStars(
     }
 }
 
+void processVisibleStars(
+    const OctreeNode *node,
+    StarProcesor& procesor,
+    Vector3d position,
+    Quaternionf orientation,
+    float fovY,
+    float aspectRatio,
+    float limitingFactor)
+{
+    Frustum::PlaneType fp[5];
+    create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
+    processVisibleStars(node, procesor, position, fp, limitingFactor);
+}
+
 void processVisibleDsos(
-    OctreeNode *node,
+    const OctreeNode *node,
     DsoProcesor& procesor,
     const Eigen::Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
@@ -109,15 +144,29 @@ void processVisibleDsos(
     }
 }
 
+void processVisibleDsos(
+    const OctreeNode *node,
+    DsoProcesor& procesor,
+    Vector3d position,
+    Quaternionf orientation,
+    float fovY,
+    float aspectRatio,
+    float limitingFactor)
+{
+    Frustum::PlaneType fp[5];
+    create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
+    processVisibleDsos(node, procesor, position, fp, limitingFactor);
+}
+
 void processCloseStars(
-    OctreeNode *node,
+    const OctreeNode *node,
     StarProcesor& procesor,
     const Vector3d& obsPosition,
-    float boundingRadius)
+    double boundingRadius)
 {
     // Compute the distance to node; this is equal to the distance to
     // the cellCenterPos of the node minus the boundingRadius of the node, scale * SQRT3.
-    float nodeDistance    = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
+    double nodeDistance    = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
 
     if (nodeDistance > boundingRadius)
         return;
@@ -127,7 +176,7 @@ void processCloseStars(
 
     // Compute distance squared to avoid having to sqrt for distance
     // comparison.
-    float radiusSquared = boundingRadius * boundingRadius;
+    double radiusSquared = boundingRadius * boundingRadius;
 
     // Check all the objects in the node.
     for (auto obj : node->getStars())
@@ -156,7 +205,7 @@ void processCloseStars(
 }
 
 void processCloseDsos(
-    OctreeNode *node,
+    const OctreeNode *node,
     DsoProcesor& procesor,
     const Vector3d& obsPosition,
     double boundingRadius)
