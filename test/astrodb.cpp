@@ -73,6 +73,9 @@ int main()
     ret = nloader.load(string("data/starnames.dat"));
     cout << "Names data loaded with status: " << ret << endl;
 
+    objectNames(adb, adb.nameToIndex("TAU Boo"));
+    objectNames(adb, adb.starnameToIndex("TAU Boo"));
+
     ret = stcloader.load(string("data/revised.stc"));
     cout << "Stc data loaded with status: " << ret << endl;
 
@@ -80,6 +83,9 @@ int main()
     cout << "Stc data loaded with status: " << ret << endl;
 
     ret = stcloader.load(string("data/nearstars.stc"));
+    cout << "Stc data loaded with status: " << ret << endl;
+
+    ret = stcloader.load(string("data/charm2.stc"));
     cout << "Stc data loaded with status: " << ret << endl;
 
     xloader.catalog = AstroDatabase::Gliese;
@@ -96,6 +102,10 @@ int main()
     objectNames(adb, "C 1126+292");
     objectNames(adb, "NGC 3201");
     objectNames(adb, "36 Oph C");
+    objectNames(adb, 67275);
+    objectNames(adb, 55846);
+    objectNames(adb, adb.nameToIndex("TAU Boo"));
+    objectNames(adb, adb.starnameToIndex("TAU Boo"));
     assert(adb.getStar(70890) != nullptr);
     assert(adb.nameToIndex("Gliese 423") == 55203);
     assert(adb.nameToIndex("ALF Cen") != AstroCatalog::InvalidIndex);
