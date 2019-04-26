@@ -158,7 +158,7 @@ QVariant StarTableModel::data(const QModelIndex& index, int role) const
         {
         case NameColumn:
             {
-                string starNameString = ReplaceGreekLetterAbbr(universe->getStarCatalog()->getStarName(*star));
+                string starNameString = ReplaceGreekLetterAbbr(universe->getDatabase().getObjectName(star));
                 return QString::fromStdString(starNameString);
             }
         case DistanceColumn:
@@ -189,7 +189,7 @@ QVariant StarTableModel::data(const QModelIndex& index, int role) const
         case NameColumn:
             {
                 uint32_t hipCatNo = star->getIndex();
-                uint32_t hdCatNo  = universe->getStarCatalog()->crossIndex(StarDatabase::HenryDraper, hipCatNo);
+                uint32_t hdCatNo  = universe->getDatabase().indexToCatalogNumber(StarDatabase::HenryDraper, hipCatNo);
                 if (hdCatNo != AstroCatalog::InvalidIndex)
                     return QString("HD %1").arg(hdCatNo);
                 else
@@ -293,7 +293,7 @@ bool StarPredicate::operator()(const Star* star0, const Star* star1) const
         return strcmp(star0->getSpectralType(), star1->getSpectralType()) < 0;
 
     case Alphabetical:
-        return strcmp(universe->getStarCatalog()->getStarName(*star0, true).c_str(), universe->getStarCatalog()->getStarName(*star1, true).c_str()) < 0;
+        return strcmp(universe->getDatabase().getObjectName(star0, true).c_str(), universe->getDatabase().getObjectName(star1, true).c_str()) < 0;
 
     default:
         return false;
@@ -389,7 +389,7 @@ void StarTableModel::populate(const UniversalCoord& _observerPos,
                               StarPredicate::Criterion criterion,
                               unsigned int nStars)
 {
-    const StarDatabase& stardb = *universe->getStarCatalog();
+    const AstroDatabase& db = universe->getDatabase();
 
     observerPos = _observerPos;
     now = _now;
@@ -399,12 +399,12 @@ void StarTableModel::populate(const UniversalCoord& _observerPos,
 
     // Apply the filter
     vector<Star*> filteredStars;
-    unsigned int totalStars = stardb.size();
+    const auto &starset = db.getStars();
+    unsigned int totalStars = starset.size();
     unsigned int i = 0;
     filteredStars.reserve(totalStars);
-    for (i = 0; i < totalStars; i++)
+    for (const auto &star : starset)
     {
-        Star* star = stardb.getStar(i);
         if (!filterPred(star))
             filteredStars.push_back(star);
     }
@@ -714,7 +714,7 @@ void CelestialBrowser::slotMarkSelected()
                     if (labelMarker)
                     {
                         if (sel.star() != nullptr)
-                            label = universe->getStarCatalog()->getStarName(*sel.star());
+                            label = universe->getDatabase().getObjectName(sel.star());
                         label = ReplaceGreekLetterAbbr(label);
                     }
 

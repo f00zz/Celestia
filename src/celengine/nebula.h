@@ -32,7 +32,7 @@ class Nebula : public DeepSkyObject
                         const Eigen::Quaternionf& viewerOrientation,
                         float brightness,
                         float pixelSize,
-                        const Renderer* renderer);
+                        const Renderer* renderer) const;
 
     virtual unsigned int getRenderMask() const;
     virtual unsigned int getLabelMask() const;

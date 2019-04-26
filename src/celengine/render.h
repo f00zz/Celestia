@@ -430,10 +430,10 @@ class Renderer
 
  private:
     void setFieldOfView(float);
-    void renderStars(const StarDatabase& starDB,
+    void renderStars(const AstroDatabase& aDB,
                      float faintestVisible,
                      const Observer& observer);
-    void renderPointStars(const StarDatabase& starDB,
+    void renderPointStars(const AstroDatabase& aDB,
                           float faintestVisible,
                           const Observer& observer);
     void renderDeepSkyObjects(const Universe&,

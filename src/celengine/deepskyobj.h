@@ -87,7 +87,7 @@ class DeepSkyObject : public AstroObject
                         const Eigen::Quaternionf& viewerOrientation,
                         float brightness,
                         float pixelSize,
-                        const Renderer*) = 0;
+                        const Renderer*) const = 0;
 
     virtual unsigned int getRenderMask() const { return 0; }
     virtual unsigned int getLabelMask() const { return 0; }

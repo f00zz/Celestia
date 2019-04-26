@@ -62,11 +62,11 @@ class Globular : public DeepSkyObject
                         const Eigen::Quaternionf& viewerOrientation,
                         float brightness,
                         float pixelSize,
-                        const Renderer* r = nullptr);
+                        const Renderer* r = nullptr) const;
     virtual void renderGlobularPointSprites(const Eigen::Vector3f& offset,
                                             const Eigen::Quaternionf& viewerOrientation,
                                             float brightness,
-                                            float pixelSize);
+                                            float pixelSize) const;
     GlobularForm* getForm() const;
 
     virtual unsigned int getRenderMask() const;

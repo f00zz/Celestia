@@ -12,6 +12,8 @@
 #include "asterism.h"
 #include "execution.h"
 #include "glcontext.h"
+#include "stardataloader.h"
+#include "dsodataloader.h"
 #include <celestia/celestiacore.h>
 #include <celestia/imagecapture.h>
 #include <celestia/celx_internal.h>
@@ -1123,10 +1125,16 @@ void CommandLoadFragment::process(ExecutionEnvironment& env)
     }
     else if (compareIgnoringCase(type, "stc") == 0)
     {
-        u->getStarCatalog()->load(in, dir);
+        StcDataLoader loader(&(u->getDatabase()));
+        loader.resourcePath = dir;
+        loader.load(in);
+//        u->getStarCatalog()->load(in, dir);
     }
     else if (compareIgnoringCase(type, "dsc") == 0)
     {
-        u->getDSOCatalog()->load(in, dir);
+        DscDataLoader loader(&(u->getDatabase()));
+        loader.resourcePath = dir;
+        loader.load(in);
+//        u->getDSOCatalog()->load(in, dir);
     }
 }
