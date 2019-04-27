@@ -33,8 +33,16 @@ void processVisibleStars(
     StarProcesor& procesor,
     const Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
-    float limitingFactor)
+    float limitingFactor,
+    OctreeProcStats *stats)
 {
+    size_t h = 0;
+    if (stats != nullptr)
+    {
+        h = stats->height + 1;
+        stats->nodes++;
+    }
+
     if (!node->isInFrustum(frustumPlanes))
         return;
 
@@ -47,6 +55,8 @@ void processVisibleStars(
 
     for (auto &obj : node->getStars())
     {
+        if (stats != nullptr)
+            stats->objects++;
         if (obj->getAbsoluteMagnitude() < dimmest)
         {
             double distance = (obsPosition - obj->getPosition().cast<double>()).norm();
@@ -70,8 +80,13 @@ void processVisibleStars(
                                     procesor,
                                     obsPosition,
                                     frustumPlanes,
-                                    limitingFactor);
+                                    limitingFactor,
+                                    stats);
+                if (stats != nullptr && stats->height > h)
+                    h = stats->height;
             }
+            if (stats != nullptr)
+                stats->height = h;
         }
     }
 }
@@ -83,11 +98,12 @@ void processVisibleStars(
     Quaternionf orientation,
     float fovY,
     float aspectRatio,
-    float limitingFactor)
+    float limitingFactor,
+    OctreeProcStats *stats)
 {
     Frustum::PlaneType fp[5];
     create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
-    processVisibleStars(node, procesor, position, fp, limitingFactor);
+    processVisibleStars(node, procesor, position, fp, limitingFactor, stats);
 }
 
 void processVisibleDsos(
@@ -95,8 +111,15 @@ void processVisibleDsos(
     DsoProcesor& procesor,
     const Eigen::Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
-    float limitingFactor)
+    float limitingFactor,
+    OctreeProcStats *stats)
 {
+    size_t h = 0;
+    if (stats != nullptr)
+    {
+        stats->nodes++;
+        h = stats->height + 1;
+    }
     // See if this node lies within the view frustum
 
     // Test the cubic octree node against each one of the five
@@ -113,6 +136,8 @@ void processVisibleDsos(
 
     for (auto obj : node->getDsos())
     {
+        if (stats != nullptr)
+            stats->objects++;
         float absMag = obj->getAbsoluteMagnitude();
         if (absMag < dimmest)
         {
@@ -138,8 +163,13 @@ void processVisibleDsos(
                     procesor,
                     obsPosition,
                     frustumPlanes,
-                    limitingFactor);
+                    limitingFactor,
+                    stats);
+                if (stats != nullptr && h < stats->height)
+                    h = stats->height;
             }
+            if (stats != nullptr)
+                stats->height = h;
         }
     }
 }
@@ -151,11 +181,12 @@ void processVisibleDsos(
     Quaternionf orientation,
     float fovY,
     float aspectRatio,
-    float limitingFactor)
+    float limitingFactor,
+    OctreeProcStats *stats)
 {
     Frustum::PlaneType fp[5];
     create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
-    processVisibleDsos(node, procesor, position, fp, limitingFactor);
+    processVisibleDsos(node, procesor, position, fp, limitingFactor, stats);
 }
 
 void processCloseStars(

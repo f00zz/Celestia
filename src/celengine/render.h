@@ -17,6 +17,7 @@
 #include <celengine/observer.h>
 #include <celengine/selection.h>
 #include <celengine/glcontext.h>
+#include <celengine/processoctree.h>
 #include <celengine/starcolors.h>
 #include <celengine/rendcontext.h>
 #include <celtxf/texturefont.h>
@@ -375,10 +376,9 @@ class Renderer
         LightingState::EclipseShadowVector* eclipseShadows;
     };
 
-#ifdef OCTREE_DEBUG
     OctreeProcStats m_starProcStats;
     OctreeProcStats m_dsoProcStats;
-#endif
+
  private:
     struct SkyVertex
     {

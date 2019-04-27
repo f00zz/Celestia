@@ -1,9 +1,18 @@
 
+#pragma once
+
 #include <celmath/frustum.h>
 
 class Star;
 class DeepSkyObject;
 class OctreeNode;
+
+struct OctreeProcStats
+{
+    size_t objects { 0 };
+    size_t height { 0 };
+    size_t nodes { 0 };
+};
 
 template<typename T>
 class ObjectProcesor
@@ -23,7 +32,8 @@ void processVisibleStars(
     StarProcesor& procesor,
     const Eigen::Vector3d& obsPos,
     const Frustum::PlaneType *frustumPlanes,
-    float limitFactor);
+    float limitFactor,
+    OctreeProcStats * = nullptr);
 
 void processVisibleStars(
     const OctreeNode *node,
@@ -32,14 +42,16 @@ void processVisibleStars(
     Eigen::Quaternionf orientation,
     float fovY,
     float aspectRatio,
-    float limitingFactor);
+    float limitingFactor,
+    OctreeProcStats * = nullptr);
 
 void processVisibleDsos(
     const OctreeNode *node,
     DsoProcesor& procesor,
     const Eigen::Vector3d& obsPos,
     const Frustum::PlaneType *frustumPlanes,
-    float limitFactor);
+    float limitFactor,
+    OctreeProcStats * = nullptr);
 
 void processVisibleDsos(
     const OctreeNode *node,
@@ -48,7 +60,8 @@ void processVisibleDsos(
     Eigen::Quaternionf orientation,
     float fovY,
     float aspectRatio,
-    float limitingFactor);
+    float limitingFactor,
+    OctreeProcStats * = nullptr);
 
 void processCloseStars(const OctreeNode *node, StarProcesor& procesor, const Eigen::Vector3d& obsPos, double bRadius);
 void processCloseDsos(const OctreeNode *node, DsoProcesor& procesor, const Eigen::Vector3d& obsPos, double bRadius);
