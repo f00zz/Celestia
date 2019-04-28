@@ -352,7 +352,7 @@ bool StarBinDataLoader::load(istream& in)
         break;
 
         Star *star = new Star();
-        star->setPosition(x, y, z);
+        star->setPosition(Eigen::Vector3d(x, y, z));
         star->setAbsoluteMagnitude((float) absMag / 256.0f);
 
         StarDetails* details = nullptr;

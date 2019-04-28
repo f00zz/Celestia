@@ -261,7 +261,7 @@ AsterismList* ReadAsterismList(istream& in, const AstroDatabase& adb)
                         if (star == nullptr)
                             star = adb.getStar(ReplaceGreekLetterAbbr(i->getString()));
                         if (star != nullptr)
-                            new_chain->push_back(star->getPosition());
+                            new_chain->push_back(star->getPosition().cast<float>());
                         else DPRINTF(0, "Error loading star \"%s\" for asterism \"%s\".\n", name.c_str(), i->getString().c_str());
                     }
                 }
