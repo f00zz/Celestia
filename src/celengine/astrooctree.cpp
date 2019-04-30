@@ -1,177 +1,121 @@
 
+#include <limits.h>
 #include "astrooctree.h"
 #include "star.h"
 #include "deepskyobj.h"
 
+using namespace std;
 using namespace Eigen;
 
-OctreeNode::OctreeNode(PointType cellCenter, double scale, float starEx, float dsoEx, OctreeNode *parent) :
-    m_children(nullptr),
+OctreeNode::OctreeNode(const Vector3d& cellCenter, double scale, OctreeNode *parent) :
     m_cellCenter(cellCenter),
     m_scale(scale),
-    m_starExclusionFactor(starEx),
-    m_dsoExclusionFactor(dsoEx),
     m_parent(parent)
-{}
+{
+    for(int i = 0; i < 8; i++)
+        m_children[i] = nullptr;
+}
 
 OctreeNode::~OctreeNode()
 {
-    if (m_children != nullptr)
-    {
-        for (auto &i : *m_children)
+    for (auto &i : m_children)
+        if (i != nullptr)
             delete i;
-        delete m_children;
-    }
 }
 
-bool OctreeNode::add(Star *star)
+bool OctreeNode::add(LuminousObject *obj)
 {
-    m_stars.emplace_back(star);
+    m_objects.insert(make_pair(obj->getAbsoluteMagnitude(), obj));
     return true;
 }
 
-bool OctreeNode::add(DeepSkyObject *dso)
+bool OctreeNode::rm(LuminousObject *obj)
 {
-    m_dsos.emplace_back(dso);
-    return true;
-}
-
-bool OctreeNode::rm(Star *star)
-{
-//     size_t s = m_stars.erase(star);
-//     return s > 0 ? true : false;
-    return false;
-}
-
-bool OctreeNode::rm(DeepSkyObject *dso)
-{
-//     size_t s = m_dsos.erase(dso);
-//     return s > 0 ? true : false;
-    return false;
-}
-
-bool OctreeNode::split()
-{
-    if (m_children != nullptr)
+    auto i = objectIterator(obj);
+    if (i == m_objects.end())
         return false;
-    m_children = new Children;
-    double scale = m_scale / 2;
-    for (int i = 0; i < 8; ++i)
-    {
-        PointType centerPos = m_cellCenter;
-
-        centerPos += PointType(((i & XPos) != 0) ? scale : -scale,
-                                ((i & YPos) != 0) ? scale : -scale,
-                                ((i & ZPos) != 0) ? scale : -scale);
-
-        (*m_children)[i] = new OctreeNode(
-            centerPos,
-            m_scale / 2,
-            starAbsoluteMagnitudeDecay(m_starExclusionFactor),
-            dsoAbsoluteMagnitudeDecay(m_dsoExclusionFactor),
-            this);
-    }
-    sortIntoChildNodes();
+    m_objects.erase(i);
     return true;
 }
 
-bool OctreeNode::collapse()
-{/*
-    if (m_children == nullptr)
-        return false;
-    for (auto &child : getChildren())
-    {
-        child->collapse();
-        for (auto &i : child->getStars())
-            add(i);
-        for (auto &i : child->getDsos())
-            add(i);
-        delete child;
-    }
-    delete m_children;
-    m_children = nullptr;
-    return true;*/
-    return false;
-}
-
-bool OctreeNode::insertObject(Star *star)
+OctreeNode *OctreeNode::getChild(int i, bool create)
 {
-    if (limitingFactorPredicate(star, m_starExclusionFactor) || straddlingPredicate(m_cellCenter, star, m_starExclusionFactor))
-        add(star);
-    else
-    {
-        if (m_children == nullptr)
-        {
-            if (getObjectCount() >= SPLIT_THRESHOLD)
-                split();
-            add(star);
-        }
-        else
-            getChild(star->getPosition().cast<double>())->insertObject(star);
-    }
-    return true;
-}
+    if (m_children[i] != nullptr)
+        return m_children[i];
 
-bool OctreeNode::insertObject(DeepSkyObject *dso)
-{
-    if (limitingFactorPredicate(dso, m_dsoExclusionFactor) || straddlingPredicate(m_cellCenter, dso, m_dsoExclusionFactor))
-        add(dso);
-    else
-    {
-        if (m_children == nullptr)
-        {
-            if (getObjectCount() >= SPLIT_THRESHOLD)
-                split();
-            add(dso);
-        }
-        else
-            getChild(dso->getPosition().cast<double>())->insertObject(dso);
-    }
-    return true;
-}
-
-OctreeNode *OctreeNode::getChild(const Eigen::Vector3d &pos)
-{
-    if (m_children == nullptr)
+    if (!create)
         return nullptr;
 
+    createChild(i);
+    return m_children[i];
+}
+
+bool OctreeNode::createChild(int i)
+{
+    if (m_children[i] != nullptr)
+        return false;
+    double scale = m_scale / 2;
+    Vector3d centerPos = m_cellCenter + Vector3d(((i & XPos) != 0) ? scale : -scale,
+                                        ((i & YPos) != 0) ? scale : -scale,
+                                        ((i & ZPos) != 0) ? scale : -scale);
+    m_children[i] = new OctreeNode(centerPos, scale, this);
+    m_childrenCount++;
+    return true;
+}
+
+bool OctreeNode::deleteChild(int n)
+{
+    if (m_children[n] == nullptr)
+        return false;
+    delete m_children[n];
+    m_children[n] = nullptr;
+    m_childrenCount--;
+    return true;
+}
+
+bool OctreeNode::pushFaintest()
+{
+    LuminousObject *obj = popFaintest();
+    if (obj == nullptr)
+        return false;
+    OctreeNode *child = getChild(obj->getPosition());
+    if (child == nullptr)
+        return false;
+    return child->insertObject(obj);
+}
+
+bool OctreeNode::pullBrightest(bool norm)
+{
+    int n = getBrightestChildId();
+    OctreeNode *child = m_children[n];
+    if (child == nullptr)
+        return false;
+    LuminousObject *obj = child->popBrightest();
+    if (obj == nullptr)
+        return false;
+    add(obj);
+    if (norm)
+    {
+        child->normalize(true);
+        if (child->empty())
+            deleteChild(n);
+    }
+    return true;
+}
+
+bool OctreeNode::insertObject(LuminousObject *obj)
+{
+    return add(obj);
+}
+
+int OctreeNode::getChildId(const Eigen::Vector3d &pos)
+{
     int child = 0;
     child |= pos.x() < m_cellCenter.x() ? 0 : XPos;
     child |= pos.y() < m_cellCenter.y() ? 0 : YPos;
     child |= pos.z() < m_cellCenter.z() ? 0 : ZPos;
 
-    return (*m_children)[child];
-}
-
-OctreeNode *OctreeNode::getChild(int n)
-{
-    if (m_children == nullptr || n < 0 || n > 7)
-        return nullptr;
-    return (*m_children)[n];
-}
-
-void OctreeNode::sortIntoChildNodes()
-{
-    unsigned int nKeptInParent = 0;
-
-    for (auto &i : m_stars)
-    {
-        if (!limitingFactorPredicate(i, m_starExclusionFactor) &&
-            !straddlingPredicate(m_cellCenter, i, m_starExclusionFactor))
-        {
-                getChild(i->getPosition().cast<double>())->add(i);
-                rm(i);
-        }
-    }
-    for (auto &i : m_dsos)
-    {
-        if (!limitingFactorPredicate(i, m_dsoExclusionFactor) &&
-            !straddlingPredicate(m_cellCenter, i, m_dsoExclusionFactor))
-        {
-                getChild(i->getPosition().cast<double>())->add(i);
-                rm(i);
-        }
-    }
+    return child;
 }
 
 bool OctreeNode::isInFrustum(const Frustum::PlaneType *planes) const
@@ -187,39 +131,105 @@ bool OctreeNode::isInFrustum(const Frustum::PlaneType *planes) const
     return true;
 }
 
-bool OctreeNode::limitingFactorPredicate (Star *star, float absMag)
+bool OctreeNode::isInCell(const Vector3d& pos) const
 {
-    return star->getAbsoluteMagnitude() <= absMag;
+    Vector3d rpos = pos - getCenter();
+    double s = getScale();
+    if (rpos.x() >= - s && rpos.x() <= s &&
+        rpos.y() >= - s && rpos.y() <= s &&
+        rpos.z() >= - s && rpos.z() <= s)
+        return true;
+    return false;
 }
 
-bool OctreeNode::limitingFactorPredicate (DeepSkyObject *dso, float absMag)
+static bool pred(const OctreeNode::ObjectList::iterator &i1, const OctreeNode::ObjectList::iterator &i2)
 {
-    return dso->getAbsoluteMagnitude() <= absMag;
+    return i1->first < i2->first;
 }
 
-bool OctreeNode::straddlingPredicate (const PointType &center, Star *star, float )
+OctreeNode::ObjectList::const_iterator OctreeNode::objectIterator(const LuminousObject *obj) const
 {
-    float orbitalRadius = star->getOrbitalRadius();
-    if (orbitalRadius == 0.0f)
-        return false;
-    Vector3d starPos = star->getPosition().cast<double>();
-    return (starPos - center).cwiseAbs().minCoeff() < orbitalRadius;
+    auto pair = m_objects.equal_range(obj->getAbsoluteMagnitude());
+    if (pair.first == m_objects.end())
+        return m_objects.end();
+    do
+    {
+        if (pair.first->second == obj)
+            return pair.first;
+        pair.first++;
+    }
+    while(pair.first != pair.second);
+    return m_objects.end();
 }
 
-bool OctreeNode::straddlingPredicate (const PointType &center, DeepSkyObject *dso, float )
+float OctreeNode::getBrightest() const
 {
-    float dsoRadius = dso->getBoundingSphereRadius();
-    return (dso->getPosition() - center).cwiseAbs().minCoeff() < dsoRadius;
+    if (m_objects.empty())
+        return numeric_limits<float>::max();
+    return m_objects.begin()->first;
 }
 
-double OctreeNode::dsoAbsoluteMagnitudeDecay(double excludingFactor)
+float OctreeNode::getFaintest() const
 {
-    return excludingFactor + 0.5f;
+    if (m_objects.empty())
+        return numeric_limits<float>::min();
+    return (--m_objects.end())->first;
 }
 
-double OctreeNode::starAbsoluteMagnitudeDecay(double excludingFactor)
+LuminousObject *OctreeNode::popBrightest()
 {
-    return astro::lumToAbsMag(astro::absMagToLum(excludingFactor) / 4.0f);
+    if (m_objects.empty())
+        return nullptr;
+    auto it = m_objects.begin();
+    m_objects.erase(it);
+    return it->second;
 }
 
-size_t OctreeNode::SPLIT_THRESHOLD;
+LuminousObject *OctreeNode::popFaintest()
+{
+    if (m_objects.empty())
+        return nullptr;
+    auto it = --m_objects.end();
+    m_objects.erase(it);
+    return it->second;
+}
+
+int OctreeNode::getBrightestChildId() const
+{
+    int ret = -1;
+    float f = getFaintest();
+    for(int i = 0; i < 8; i++)
+    {
+        OctreeNode *child = m_children[i];
+        if (child != nullptr && child->getBrightest() < f)
+        {
+            f = child->getBrightest();
+            ret = i;
+        }
+    }
+    return ret;
+}
+
+void OctreeNode::normalize(bool recurent)
+{
+    if(getObjectCount() > MAX_OBJECTS)
+    {
+        while(getObjectCount() > MAX_OBJECTS)
+        {
+            pushFaintest();
+        }
+        if (recurent)
+        {
+            for(auto &child : m_children)
+                if (child != nullptr)
+                    child->normalize();
+        }
+    }
+    else
+    {
+        while(getObjectCount() < MAX_OBJECTS && getChildrenCount() > 0)
+        {
+            pullBrightest();
+        }
+    }
+}

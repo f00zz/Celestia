@@ -655,7 +655,7 @@ Selection Universe::pickStar(const UniversalCoord& origin,
     // precision test isn't nearly fast enough to use on our database of
     // over 100k stars.
     CloseStarPicker closePicker(origin, direction, when, 1.0, tolerance);
-    processCloseStars(m_adb.getOctree(), closePicker, o, 1);
+    processCloseStars(m_adb.getStarOctree(), closePicker, o, 1);
 //    starCatalog->findCloseStars(closePicker, o, 1.0f);
     if (closePicker.closestStar != nullptr)
         return Selection(const_cast<Star*>(closePicker.closestStar));
@@ -667,7 +667,7 @@ Selection Universe::pickStar(const UniversalCoord& origin,
     rotation.setFromTwoVectors(-Vector3f::UnitZ(), direction);
 
     StarPicker picker(o, direction.cast<double>(), when, tolerance);
-    processVisibleStars(m_adb.getOctree(), picker, o, rotation.conjugate(), tolerance, 1, faintestMag);
+    processVisibleStars(m_adb.getStarOctree(), picker, o, rotation.conjugate(), tolerance, 1, faintestMag);
 /*    starCatalog->findVisibleStars(picker,
                                   o,
                                   rotation.conjugate(),
@@ -810,7 +810,7 @@ Selection Universe::pickDeepSkyObject(const UniversalCoord& origin,
 
     CloseDSOPicker closePicker(orig, dir, renderFlags, 1e9, tolerance);
 
-    processCloseDsos(m_adb.getOctree(), closePicker, orig, 1e9);
+    processCloseDsos(m_adb.getDsoOctree(), closePicker, orig, 1e9);
 //    dsoCatalog->findCloseDSOs(closePicker, orig, 1e9);
     if (closePicker.closestDSO != nullptr)
     {
@@ -821,7 +821,7 @@ Selection Universe::pickDeepSkyObject(const UniversalCoord& origin,
     rotation.setFromTwoVectors(-Vector3f::UnitZ(), direction);
 
     DSOPicker picker(orig, dir, renderFlags, tolerance);
-    processVisibleDsos(m_adb.getOctree(), picker, orig, rotation.conjugate(), tolerance, 1, faintestMag);
+    processVisibleDsos(m_adb.getDsoOctree(), picker, orig, rotation.conjugate(), tolerance, 1, faintestMag);
 /*    dsoCatalog->findVisibleDSOs(picker,
                                 orig,
                                 rotation.conjugate(),
@@ -1192,7 +1192,7 @@ SolarSystem* Universe::getNearestSolarSystem(const UniversalCoord& position) con
     ClosestStarFinder closestFinder(1.0f, this);
     closestFinder.withPlanets = true;
 //    starCatalog->findCloseStars(closestFinder, pos, 1.0f);
-    processCloseStars(m_adb.getOctree(), closestFinder, pos, 1);
+    processCloseStars(m_adb.getStarOctree(), closestFinder, pos, 1);
     return getSolarSystem(closestFinder.closestStar);
 }
 
@@ -1205,5 +1205,5 @@ Universe::getNearStars(const UniversalCoord& position,
     Vector3d pos = position.toLy();
     NearStarFinder finder(maxDistance, nearStars);
 //    starCatalog->findCloseStars(finder, pos, maxDistance);
-    processCloseStars(m_adb.getOctree(), finder, pos, maxDistance);
+    processCloseStars(m_adb.getStarOctree(), finder, pos, maxDistance);
 }

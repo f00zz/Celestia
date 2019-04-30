@@ -1,11 +1,14 @@
 
 #include "astrodb.h"
 
+using namespace Eigen;
+
 constexpr array<const char *, AstroDatabase::MaxBuiltinCatalog> AstroDatabase::CatalogPrefix;
 
 AstroDatabase::AstroDatabase() :
     m_autoIndex(AutoIndexMax),
-    m_octree(OctreeNode::PointType(0, 0, 0), 100000000000, 6, 6, nullptr)
+    m_starOctree(Vector3d(0, 0, 0), 100000000000, nullptr),
+    m_dsoOctree(Vector3d(0, 0, 0), 100000000000, nullptr)
 {
     createBuiltinCatalogs();
 }
@@ -213,7 +216,7 @@ bool AstroDatabase::addStar(Star *star)
     if (!addObject(star))
         return false;
     m_stars.insert(star);
-    m_octree.insertObject(star);
+    m_starOctree.insertObject(star);
     return true;
 }
 
@@ -222,7 +225,7 @@ bool AstroDatabase::addDSO(DeepSkyObject *dso)
     if (!addObject(dso))
         return false;
     m_dsos.insert(dso);
-    m_octree.insertObject(dso);
+    m_dsoOctree.insertObject(dso);
     return true;
 }
 

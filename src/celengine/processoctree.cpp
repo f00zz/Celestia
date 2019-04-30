@@ -53,8 +53,9 @@ void processVisibleStars(
     // Process the objects in this node
     float dimmest     = minDistance > 0 ? astro::appToAbsMag(limitingFactor, minDistance) : 1000;
 
-    for (auto &obj : node->getStars())
+    for (const auto &objit : node->getObjects())
     {
+        Star *obj = static_cast<Star*>(objit.second);
         if (stats != nullptr)
             stats->objects++;
         if (obj->getAbsoluteMagnitude() < dimmest)
@@ -69,25 +70,24 @@ void processVisibleStars(
 
     // See if any of the objects in child nodes are potentially included
     // that we need to recurse deeper.
-    if (minDistance <= 0 || astro::absToAppMag(node->getStarExclusionFactor(), minDistance) <= limitingFactor)
+    if (minDistance <= 0 || astro::absToAppMag(node->getFaintest(), minDistance) <= limitingFactor)
     {
         // Recurse into the child nodes
-        if(node->hasChildren())
+        for (const auto &child : node->getChildren())
         {
-            for (auto child : node->getChildren())
-            {
-                processVisibleStars(child,
-                                    procesor,
-                                    obsPosition,
-                                    frustumPlanes,
-                                    limitingFactor,
-                                    stats);
-                if (stats != nullptr && stats->height > h)
-                    h = stats->height;
-            }
-            if (stats != nullptr)
-                stats->height = h;
+            if (child == nullptr)
+                continue;
+            processVisibleStars(child,
+                                procesor,
+                                obsPosition,
+                                frustumPlanes,
+                                limitingFactor,
+                                stats);
+            if (stats != nullptr && stats->height > h)
+                h = stats->height;
         }
+        if (stats != nullptr)
+            stats->height = h;
     }
 }
 
@@ -134,8 +134,10 @@ void processVisibleDsos(
     // Process the objects in this node
     double dimmest = minDistance > 0.0 ? astro::appToAbsMag((double) limitingFactor, minDistance) : 1000.0;
 
-    for (auto obj : node->getDsos())
+    for (const auto &objit : node->getObjects())
     {
+        DeepSkyObject *obj = static_cast<DeepSkyObject*>(objit.second);
+
         if (stats != nullptr)
             stats->objects++;
         float absMag = obj->getAbsoluteMagnitude();
@@ -151,26 +153,25 @@ void processVisibleDsos(
 
     // See if any of the objects in child nodes are potentially included
     // that we need to recurse deeper.
-    if (minDistance <= 0.0 || astro::absToAppMag((double) node->getDsoExclusionFactor(), minDistance) <= limitingFactor)
+    if (minDistance <= 0.0 || astro::absToAppMag((double) node->getFaintest(), minDistance) <= limitingFactor)
     {
         // Recurse into the child nodes
-        if (node->hasChildren())
+        for (const auto &child : node->getChildren())
         {
-            for (auto child : node->getChildren())
-            {
-                processVisibleDsos(
-                    child,
-                    procesor,
-                    obsPosition,
-                    frustumPlanes,
-                    limitingFactor,
-                    stats);
-                if (stats != nullptr && h < stats->height)
-                    h = stats->height;
-            }
-            if (stats != nullptr)
-                stats->height = h;
+            if (child == nullptr)
+                continue;
+            processVisibleDsos(
+                child,
+                procesor,
+                obsPosition,
+                frustumPlanes,
+                limitingFactor,
+                stats);
+            if (stats != nullptr && h < stats->height)
+                h = stats->height;
         }
+        if (stats != nullptr)
+            stats->height = h;
     }
 }
 
@@ -210,8 +211,10 @@ void processCloseStars(
     double radiusSquared = boundingRadius * boundingRadius;
 
     // Check all the objects in the node.
-    for (auto obj : node->getStars())
+    for (const auto &objit : node->getObjects())
     {
+        Star *obj = static_cast<Star*>(objit.second);
+
         if ((obsPosition - obj->getPosition().cast<double>()).squaredNorm() < radiusSquared)
         {
             double distance = (obsPosition - obj->getPosition().cast<double>()).norm();
@@ -222,16 +225,15 @@ void processCloseStars(
     }
 
     // Recurse into the child nodes
-    if (node->hasChildren())
+    for (const auto &child : node->getChildren())
     {
-        for (auto child : node->getChildren())
-        {
-            processCloseStars(
-                child,
-                procesor,
-                obsPosition,
-                boundingRadius);
-        }
+        if (child == nullptr)
+            continue;
+        processCloseStars(
+            child,
+            procesor,
+            obsPosition,
+            boundingRadius);
     }
 }
 
@@ -253,11 +255,13 @@ void processCloseDsos(
 
     // Compute distance squared to avoid having to sqrt for distance
     // comparison.
-    double radiusSquared    = boundingRadius * boundingRadius;    //
+    double radiusSquared = boundingRadius * boundingRadius;    //
 
     // Check all the objects in the node.
-    for (auto obj : node->getDsos())
+    for (const auto &objit : node->getObjects())
     {
+        DeepSkyObject *obj = static_cast<DeepSkyObject*>(objit.second);
+
         if ((obsPosition - obj->getPosition().cast<double>()).squaredNorm() < radiusSquared)    //
         {
             float  absMag = obj->getAbsoluteMagnitude();
@@ -268,15 +272,14 @@ void processCloseDsos(
     }
 
     // Recurse into the child nodes
-    if (node->hasChildren())
+    for (const auto &child : node->getChildren())
     {
-        for (auto child : node->getChildren())
-        {
-            processCloseDsos(
-                child,
-                procesor,
-                obsPosition,
-                boundingRadius);
-        }
+        if (child == nullptr)
+            continue;
+        processCloseDsos(
+            child,
+            procesor,
+            obsPosition,
+            boundingRadius);
     }
 }
