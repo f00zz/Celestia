@@ -6,9 +6,16 @@
 
 using namespace Eigen;
 
-static constexpr double SQRT3 = 1.732050807568877;
-
 static constexpr double MAX_STAR_ORBIT_RADIUS = 1;
+
+bool OctreeProcStats::isSelNode(const OctreeNode *node) const
+{
+    if (selection.getType() != Selection::Type_Star)
+        return false;
+    if (selection.star()->getOctreeNode() == node)
+        return true;
+    return false;
+}
 
 void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, Quaternionf orientation, float fovY, float aspectRatio)
 {
@@ -41,30 +48,47 @@ void processVisibleStars(
     {
         h = stats->height + 1;
         stats->nodes++;
+        if (stats->isSelNode(node))
+        {
+            stats->selNode = true;
+            stats->selInFrustum = false;
+        }
     }
 
     if (!node->isInFrustum(frustumPlanes))
         return;
 
+    if (stats != nullptr && stats->isSelNode(node))
+        stats->selInFrustum = true;
     // Compute the distance to node; this is equal to the distance to
     // the cellCenterPos of the node minus the boundingRadius of the node, scale * SQRT3.
     float minDistance = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
 
+    if (minDistance > 0 && limitingFactor < astro::absToAppMag(node->getBrightest(), minDistance))
+        return;
     // Process the objects in this node
-    float dimmest     = minDistance > 0 ? astro::appToAbsMag(limitingFactor, minDistance) : 1000;
+    float dimmest = minDistance > 0 ? astro::appToAbsMag(limitingFactor, minDistance) : 1000;
 
     for (const auto &objit : node->getObjects())
     {
         Star *obj = static_cast<Star*>(objit.second);
         if (stats != nullptr)
+        {
             stats->objects++;
+        }
         if (obj->getAbsoluteMagnitude() < dimmest)
         {
             double distance = (obsPosition - obj->getPosition().cast<double>()).norm();
             float appMag = astro::absToAppMag(obj->getAbsoluteMagnitude(), (float)distance);
 
             if (appMag < limitingFactor || (distance < MAX_STAR_ORBIT_RADIUS && obj->getOrbit()))
+            {
+                if (stats != nullptr && obj == stats->selection.obj)
+                {
+                    stats->selProc = true;
+                }
                 procesor.process(obj, distance, appMag);
+            }
         }
     }
 
@@ -139,7 +163,11 @@ void processVisibleDsos(
         DeepSkyObject *obj = static_cast<DeepSkyObject*>(objit.second);
 
         if (stats != nullptr)
+        {
             stats->objects++;
+            if (obj == stats->selection.obj)
+                stats->selNode = true;
+        }
         float absMag = obj->getAbsoluteMagnitude();
         if (absMag < dimmest)
         {
@@ -147,7 +175,13 @@ void processVisibleDsos(
             float appMag = (float) ((distance >= 32.6167) ? astro::absToAppMag((double) absMag, distance) : absMag);
 
             if (appMag < limitingFactor)
+            {
+                if (stats != nullptr && obj == stats->selection.obj)
+                {
+                    stats->selProc = true;
+                }
                 procesor.process(obj, distance, absMag);
+            }
         }
     }
 

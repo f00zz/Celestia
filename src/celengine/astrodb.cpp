@@ -7,8 +7,8 @@ constexpr array<const char *, AstroDatabase::MaxBuiltinCatalog> AstroDatabase::C
 
 AstroDatabase::AstroDatabase() :
     m_autoIndex(AutoIndexMax),
-    m_starOctree(Vector3d(0, 0, 0), 100000000000, nullptr),
-    m_dsoOctree(Vector3d(0, 0, 0), 100000000000, nullptr)
+    m_starOctree(Vector3d(0, 0, 0), 100000000000, 40, nullptr),
+    m_dsoOctree(Vector3d(0, 0, 0), 100000000000, 40, nullptr)
 {
     createBuiltinCatalogs();
 }
@@ -216,7 +216,10 @@ bool AstroDatabase::addStar(Star *star)
     if (!addObject(star))
         return false;
     m_stars.insert(star);
+    if (!m_starOctree.isDirty())
+        cout << "Clean star Octree going to be dirty!\n";
     m_starOctree.insertObject(star);
+//    fmt::fprintf(cout, "Added star  with magnitude %f.\n", star->getAbsoluteMagnitude());
     return true;
 }
 
@@ -225,6 +228,8 @@ bool AstroDatabase::addDSO(DeepSkyObject *dso)
     if (!addObject(dso))
         return false;
     m_dsos.insert(dso);
+    if (!m_dsoOctree.isDirty())
+        cout << "Clean dso Octree going to be dirty!\n";
     m_dsoOctree.insertObject(dso);
     return true;
 }

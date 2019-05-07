@@ -9,7 +9,6 @@
 class OctreeNode
 {
  public:
-    static constexpr size_t MAX_OBJECTS = 75;
     typedef std::array<OctreeNode*, 8> Children;
     typedef std::multimap<float, LuminousObject*> ObjectList;
 
@@ -21,8 +20,6 @@ class OctreeNode
     LuminousObject *popFaintest();
 
     ObjectList::const_iterator objectIterator(const LuminousObject*) const;
-    bool pushFaintest();
-    bool pullBrightest(bool = true);
 
     bool createChild(int);
     bool deleteChild(int);
@@ -33,6 +30,9 @@ class OctreeNode
     Children m_children;
     double m_scale;
     size_t m_childrenCount {0};
+    size_t m_maxObjCount {0};
+    bool m_dirty { true };
+    void setDirty(bool d) { m_dirty = d; }
  public:
     enum
     {
@@ -41,7 +41,7 @@ class OctreeNode
         ZPos = 4,
     };
 
-    OctreeNode(const Eigen::Vector3d& cellCenterPos, double scale, OctreeNode *parent = nullptr);
+    OctreeNode(const Eigen::Vector3d& cellCenterPos, double scale, size_t = 75, OctreeNode *parent = nullptr);
     ~OctreeNode();
 
     double getScale() const { return m_scale; }
@@ -67,12 +67,18 @@ class OctreeNode
     }
     int getBrightestChildId() const;
 
-    void normalize(bool = true);
-
     float getFaintest() const;
     float getBrightest() const;
 
     size_t getObjectCount() const { return m_objects.size(); }
     size_t getChildrenCount() const { return m_childrenCount; }
     bool empty() const { return m_objects.empty() && getChildrenCount() == 0; }
+
+    bool isDirty() const { return m_dirty; }
+    int check(float max, int, bool);
+    void dump(int) const;
+    OctreeNode *getParent() { return m_parent; }
+    OctreeNode *getRoot();
+    const OctreeNode *getParent() const { return m_parent; }
+    static bool m_debug;
 };

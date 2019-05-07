@@ -7,9 +7,19 @@
 using namespace std;
 using namespace Eigen;
 
-OctreeNode::OctreeNode(const Vector3d& cellCenter, double scale, OctreeNode *parent) :
+char* _stack;
+
+static void dumpObjects(const OctreeNode *node)
+{
+    for (const auto &obj : node->getObjects())
+        fmt::fprintf(cout, "%f ", obj.first);
+    fmt::fprintf(cout, "\n");
+}
+
+OctreeNode::OctreeNode(const Vector3d& cellCenter, double scale, size_t maxObj, OctreeNode *parent) :
     m_cellCenter(cellCenter),
     m_scale(scale),
+    m_maxObjCount(maxObj),
     m_parent(parent)
 {
     for(int i = 0; i < 8; i++)
@@ -25,7 +35,13 @@ OctreeNode::~OctreeNode()
 
 bool OctreeNode::add(LuminousObject *obj)
 {
+    bool dirty = true;
+//     fmt::fprintf(cout, "Adding to node %i object %i with mag %f.\n", this, obj, obj->getAbsoluteMagnitude());
+    if (obj == nullptr)
+        cout << "Null object add!!\n";
     m_objects.insert(make_pair(obj->getAbsoluteMagnitude(), obj));
+    obj->setOctreeNode(this);
+    setDirty(dirty);
     return true;
 }
 
@@ -35,6 +51,8 @@ bool OctreeNode::rm(LuminousObject *obj)
     if (i == m_objects.end())
         return false;
     m_objects.erase(i);
+    obj->setOctreeNode(nullptr);
+    setDirty(true);
     return true;
 }
 
@@ -53,12 +71,19 @@ OctreeNode *OctreeNode::getChild(int i, bool create)
 bool OctreeNode::createChild(int i)
 {
     if (m_children[i] != nullptr)
+    {
+// #ifdef OCTREE_DEBUG
+        fmt::fprintf(cout, "Trying to create already created node of index %i!\n", i);
+// #endif
         return false;
+    }
     double scale = m_scale / 2;
     Vector3d centerPos = m_cellCenter + Vector3d(((i & XPos) != 0) ? scale : -scale,
                                         ((i & YPos) != 0) ? scale : -scale,
                                         ((i & ZPos) != 0) ? scale : -scale);
-    m_children[i] = new OctreeNode(centerPos, scale, this);
+    m_children[i] = new OctreeNode(centerPos, scale, m_maxObjCount, this);
+    if (m_children[i] == nullptr)
+        fmt::fprintf(cout, "Cannot create new child!\n");
     m_childrenCount++;
     return true;
 }
@@ -73,39 +98,78 @@ bool OctreeNode::deleteChild(int n)
     return true;
 }
 
-bool OctreeNode::pushFaintest()
+bool OctreeNode::insertObject(LuminousObject *obj)
 {
-    LuminousObject *obj = popFaintest();
-    if (obj == nullptr)
-        return false;
-    OctreeNode *child = getChild(obj->getPosition());
-    if (child == nullptr)
-        return false;
-    return child->insertObject(obj);
-}
-
-bool OctreeNode::pullBrightest(bool norm)
-{
-    int n = getBrightestChildId();
-    OctreeNode *child = m_children[n];
-    if (child == nullptr)
-        return false;
-    LuminousObject *obj = child->popBrightest();
-    if (obj == nullptr)
-        return false;
-    add(obj);
-    if (norm)
+    OctreeNode *node = this;
+//     cout << __LINE__ << "\n";
+    while (!node->isInCell(obj->getPosition()))
     {
-        child->normalize(true);
-        if (child->empty())
-            deleteChild(n);
+        if (getParent() != nullptr)
+        {
+            node = node->getParent();
+        }
+        else
+            return false;
     }
+//     cout << __LINE__ << "\n";
+    float mag = obj->getAbsoluteMagnitude();
+//     cout << __LINE__ << "\n";
+    while(node->getBrightest() > mag && node->getParent() != nullptr)
+    {
+        node = node->getParent();
+    }
+//     cout << __LINE__ << "\n";
+    while(node->getFaintest() < mag && node->m_objects.size() == node->m_maxObjCount)
+    {
+        node = node->getChild(node->getChildId(obj->getPosition()));
+    }
+//     cout << __LINE__ << "\n";
+    node->add(obj);
+//     cout << __LINE__ << "\n";
+    while(node->m_objects.size() > node->m_maxObjCount)
+    {
+        LuminousObject *obj = node->popFaintest();
+        node = node->getChild(node->getChildId(obj->getPosition()));
+        node->add(obj);
+    }
+//     cout << __LINE__ << "\n";
     return true;
 }
 
-bool OctreeNode::insertObject(LuminousObject *obj)
+bool OctreeNode::removeObject(LuminousObject *obj)
 {
-    return add(obj);
+    if (!rm(obj))
+    {
+        fmt::fprintf(cout, "Object %i not found to remove!\n", obj);
+        return false;
+    }
+    OctreeNode *node = this;
+    while(node->m_objects.size() < node->m_maxObjCount && node->getChildrenCount() > 0)
+    {
+//         fmt::fprintf(cout, "Node %i[%i/ %i]->%i\n", node, node->m_objects.size(), node->m_maxObjCount, node->getChildrenCount());
+        int i = node->getBrightestChildId();
+        if (i < 0)
+        {
+            fmt::fprintf(cout, "No brightest child of node %i!!\n", node);
+            getRoot()->dump(0);
+        }
+        OctreeNode *child = node->getChild(i);
+        if (child == nullptr)
+            cout << "Null child!!" << endl;
+        LuminousObject *obj = child->popBrightest();
+        node->add(obj);
+        if (child->getObjectCount() > 0)
+        {
+//             fmt::fprintf(cout, "Going to child %i.\n", child);
+            node = child;
+        }
+        else
+        {
+//             fmt::fprintf(cout, "Deleting child nr %i.\n", child);
+            node->deleteChild(i);
+        }
+    }
+    return true;
 }
 
 int OctreeNode::getChildId(const Eigen::Vector3d &pos)
@@ -152,13 +216,16 @@ OctreeNode::ObjectList::const_iterator OctreeNode::objectIterator(const Luminous
     auto pair = m_objects.equal_range(obj->getAbsoluteMagnitude());
     if (pair.first == m_objects.end())
         return m_objects.end();
+    OctreeNode::ObjectList::const_iterator it = pair.first;
     do
     {
-        if (pair.first->second == obj)
-            return pair.first;
-        pair.first++;
+        if (it->second == obj)
+            return it;
+        if(it == pair.second)
+            break;
+        it++;
     }
-    while(pair.first != pair.second);
+    while(it != m_objects.end());
     return m_objects.end();
 }
 
@@ -182,6 +249,7 @@ LuminousObject *OctreeNode::popBrightest()
         return nullptr;
     auto it = m_objects.begin();
     m_objects.erase(it);
+    setDirty(true);
     return it->second;
 }
 
@@ -191,13 +259,14 @@ LuminousObject *OctreeNode::popFaintest()
         return nullptr;
     auto it = --m_objects.end();
     m_objects.erase(it);
+    setDirty(true);
     return it->second;
 }
 
 int OctreeNode::getBrightestChildId() const
 {
     int ret = -1;
-    float f = getFaintest();
+    float f = numeric_limits<float>::max();
     for(int i = 0; i < 8; i++)
     {
         OctreeNode *child = m_children[i];
@@ -207,29 +276,101 @@ int OctreeNode::getBrightestChildId() const
             ret = i;
         }
     }
+    if (ret < 0 && m_childrenCount == 0)
+    {
+        fmt::fprintf(cout, "No brightest child but there should be!\n");
+    }
     return ret;
 }
 
-void OctreeNode::normalize(bool recurent)
+int OctreeNode::check(float max, int level, bool fatal)
 {
-    if(getObjectCount() > MAX_OBJECTS)
+    int nerr = 0;
+    level++;
+    if (m_objects.size() > m_maxObjCount)
     {
-        while(getObjectCount() > MAX_OBJECTS)
+        fmt::fprintf(cout, "Objects number exceedes maximum at level %i!\n", level);
+        if (fatal)
+            exit(1);
+        if (nerr == 0)
+            nerr = 1;
+    }
+    if (m_objects.size() < m_maxObjCount && getChildrenCount() > 0)
+    {
+        fmt::fprintf(cout, "Objects number is less than maximum at level %i!\n", level);
+        if (fatal)
+            exit(1);
+        if (nerr == 0)
+            nerr = 1;
+    }
+    for(const auto &obj : m_objects)
+    {
+        if (obj.first != obj.second->getAbsoluteMagnitude())
         {
-            pushFaintest();
-        }
-        if (recurent)
-        {
-            for(auto &child : m_children)
-                if (child != nullptr)
-                    child->normalize();
+            fmt::fprintf(cout, "Object with mag %f wrongly assigned to mag %f on level %i!\n", obj.second->getAbsoluteMagnitude(), obj.first, level);
+            if (fatal)
+                exit(1);
+            if (nerr == 0)
+                nerr = 1;
         }
     }
-    else
+    for(ObjectList::const_iterator it = m_objects.begin(); it != m_objects.end(); it++)
     {
-        while(getObjectCount() < MAX_OBJECTS && getChildrenCount() > 0)
+        ObjectList::const_iterator it2 = it;
+        it2++;
+        if (it2 != m_objects.end() && it->first > it2->first)
         {
-            pullBrightest();
+            fmt::fprintf(cout, "\nObjects on level %i wrongly sorted!\n", level);
+            if (fatal)
+                exit(1);
+            nerr = 1;
         }
+    }
+    if (getBrightest() < max)
+    {
+        fmt::fprintf(cout, "\nBrightest brighter than max on level %i (%f < %f) in node %i!\n", level, getBrightest(), max, this);
+        dumpObjects(this);
+        if (m_parent != nullptr)
+        {
+            fmt::fprintf(cout, "\nParent %i dump:\n", getParent());
+            dumpObjects(m_parent);
+        }
+        if (fatal)
+            exit(1);
+        if (nerr == 0)
+            nerr = 1;
+    }
+    for (const auto &child : m_children)
+    {
+        if (child != nullptr)
+            nerr += child->check(getFaintest(), level, fatal);
+    }
+    return nerr;
+}
+
+void OctreeNode::dump(int level) const
+{
+    int l = level;
+    while(l > 0)
+    {
+        cout << " ";
+        l--;
+    }
+    cout << this << " ";
+    dumpObjects(this);
+    for(const auto &child : m_children)
+    {
+        if (child != nullptr)
+            child->dump(level + 1);
     }
 }
+
+OctreeNode *OctreeNode::getRoot()
+{
+    OctreeNode *ret = this;
+    while(ret->getParent() != nullptr)
+        ret = ret->getParent();
+    return ret;
+}
+
+bool OctreeNode::m_debug = false;

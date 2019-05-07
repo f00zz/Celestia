@@ -378,6 +378,7 @@ class Renderer
 
     OctreeProcStats m_starProcStats;
     OctreeProcStats m_dsoProcStats;
+    Selection m_selected;
 
  private:
     struct SkyVertex

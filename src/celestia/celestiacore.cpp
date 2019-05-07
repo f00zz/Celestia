@@ -659,6 +659,7 @@ void CelestiaCore::mouseButtonUp(float x, float y, int button)
             sim->setSelection(newSel);
             if (!oldSel.empty() && oldSel == newSel)
                 sim->centerSelection();
+            getRenderer()->m_selected = newSel;
         }
         else if (button == RightButton)
         {
@@ -3467,7 +3468,7 @@ void CelestiaCore::renderOverlay()
     {
         // Speed
         glPushMatrix();
-        glTranslatef(0.0f, (float) (fontHeight * 2 + 5), 0.0f);
+        glTranslatef(0.0f, (float) (fontHeight * 8 + 5), 0.0f);
         glColor4f(0.7f, 0.7f, 1.0f, 1.0f);
 
         overlay->beginText();
@@ -3475,14 +3476,31 @@ void CelestiaCore::renderOverlay()
         if (showFPSCounter)
         {
             Renderer *rend = getRenderer();
-            fmt::fprintf(*overlay, _("FPS: %.1f, Stars: [ %i : %i : %i ], DSOs: [ %i : %i : %i ]\n"),
+            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nsel star: [ %i : %i : %i ]\nsel dso: [ %i : %i : %i ]\n"),
                          fps,
                          rend->m_starProcStats.objects,
                          rend->m_starProcStats.nodes,
                          rend->m_starProcStats.height,
                          rend->m_dsoProcStats.objects,
                          rend->m_dsoProcStats.nodes,
-                         rend->m_dsoProcStats.height);
+                         rend->m_dsoProcStats.height,
+                         rend->m_starProcStats.selProc,
+                         rend->m_starProcStats.selNode,
+                         rend->m_starProcStats.selInFrustum,
+                         rend->m_dsoProcStats.selProc,
+                         rend->m_dsoProcStats.selNode,
+                         rend->m_dsoProcStats.selInFrustum
+                        );
+            OctreeNode *node = nullptr;
+            if (lastSelection.getType() == Selection::Type_Star && (node = lastSelection.star()->getOctreeNode()) != nullptr)
+            {
+                double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
+                fmt::fprintf(*overlay, "Sel Node: [ %f : %f / %f]\n", dist, dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999, rend->m_starProcStats.limit);
+            }
+            else
+            {
+                *overlay << '\n';
+            }
         }
         else
             *overlay << '\n';
@@ -4099,7 +4117,13 @@ bool CelestiaCore::initSimulation(const string& configFileName,
         fatalError(_("Cannot read star database."), false);
         return false;
     }
-    aDB.getStarOctree()->normalize(true);
+    OctreeNode *root = aDB.getStarOctree();
+    int nerrnodes = root->check(-1000, 0, false);
+    if (nerrnodes > 0)
+    {
+        fmt::fprintf(cout, "%i bad nodes detected!\n", nerrnodes);
+        exit(1);
+    }
 
     /***** Load the deep sky catalogs *****/
 
@@ -4121,7 +4145,6 @@ bool CelestiaCore::initSimulation(const string& configFileName,
             warning(fmt::sprintf(_("Cannot read Deep Sky Objects database %s.\n"), file));
         }
     }
-    aDB.getDsoOctree()->normalize(true);
 
     // Next, read all the deep sky files in the extras directories
     {
@@ -4142,7 +4165,7 @@ bool CelestiaCore::initSimulation(const string& configFileName,
             }
         }
     }
-
+    aDB.getDsoOctree()->check(-1000 , 0, false);
 
     /***** Load the solar system catalogs *****/
     // First read the solar system files listed individually in the

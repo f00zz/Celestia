@@ -7,11 +7,32 @@ class Star;
 class DeepSkyObject;
 class OctreeNode;
 
+constexpr double SQRT3 = 1.732050807568877;
+
 struct OctreeProcStats
 {
     size_t objects { 0 };
     size_t height { 0 };
     size_t nodes { 0 };
+    size_t bads { 0 };
+    Selection selection;
+    bool selProc;
+    bool selNode;
+    Eigen::Vector3d obsPos;
+    bool selInFrustum;
+    float limit;
+    bool isSelNode(const OctreeNode *) const;
+    void reset()
+    {
+        objects = 0;
+        height = 0;
+        nodes = 0;
+        bads = 0;
+        selProc = false;
+        selNode = false;
+        selInFrustum = false;
+        float limit = 9999;
+    }
 };
 
 template<typename T>
