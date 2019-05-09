@@ -2,6 +2,7 @@
 #pragma once
 
 #include <celmath/frustum.h>
+#include <celengine/selection.h>
 
 class Star;
 class DeepSkyObject;
@@ -24,6 +25,8 @@ struct OctreeProcStats
     float faintest;
     float appFaintest;
     Frustum::PlaneType frustPlanes[5];
+    const OctreeNode *lastSelNode;
+    bool lastSelNodeInFrustum;
     bool isSelNode(const OctreeNode *) const;
     void reset()
     {
@@ -37,6 +40,8 @@ struct OctreeProcStats
         limit = 9999;
         faintest = 1000;
         appFaintest = 1001;
+        lastSelNode = nullptr;
+        lastSelNodeInFrustum = false;
     }
 };
 

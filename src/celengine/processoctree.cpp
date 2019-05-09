@@ -53,13 +53,29 @@ void processVisibleStars(
             stats->selNode = true;
             stats->selInFrustum = false;
         }
+        if (stats->selection.getType() == Selection::Type_Star)
+        {
+            if (node->isInCell(stats->selection.star()->getPosition()))
+            {
+                stats->lastSelNode = node;
+                stats->lastSelNodeInFrustum = false;
+            }
+        }
     }
 
     if (!node->isInFrustum(frustumPlanes))
         return;
 
-    if (stats != nullptr && stats->isSelNode(node))
-        stats->selInFrustum = true;
+    if (stats != nullptr)
+    {
+        if (stats->lastSelNode == node)
+            stats->lastSelNodeInFrustum = true;
+
+        if (stats->isSelNode(node))
+        {
+            stats->selInFrustum = true;
+        }
+    }
     // Compute the distance to node; this is equal to the distance to
     // the cellCenterPos of the node minus the boundingRadius of the node, scale * SQRT3.
     float minDistance = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
@@ -112,17 +128,6 @@ void processVisibleStars(
         }
         if (stats != nullptr)
             stats->height = h;
-    }
-    else
-    {
-        if (stats != nullptr && stats->selection.getType() == Selection::Type_Star)
-        {
-            if (node->isInCell(stats->selection.star()->getPosition()))
-            {
-                stats->faintest = node->getFaintest();
-                stats->appFaintest = astro::absToAppMag(node->getFaintest(), minDistance);
-            }
-        }
     }
 }
 

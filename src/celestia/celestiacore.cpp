@@ -3476,13 +3476,11 @@ void CelestiaCore::renderOverlay()
         if (showFPSCounter)
         {
             Renderer *rend = getRenderer();
-            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i : %f / %f ]\nDSOs: [ %i : %i : %i ]\nsel star: [ %i : %i : %i ]\nsel dso: [ %i : %i : %i ]\n"),
+            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ]\nsel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
                          fps,
                          rend->m_starProcStats.objects,
                          rend->m_starProcStats.nodes,
                          rend->m_starProcStats.height,
-                         rend->m_starProcStats.faintest,
-                         rend->m_starProcStats.appFaintest,
                          rend->m_dsoProcStats.objects,
                          rend->m_dsoProcStats.nodes,
                          rend->m_dsoProcStats.height,
@@ -3498,13 +3496,21 @@ void CelestiaCore::renderOverlay()
             {
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
                 float fdist = dist;
-                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f : %f (%f) / %f]\n",
+                Vector3d diffpos = rend->m_starProcStats.obsPos - node->getCenter();
+
+                if (rend->m_starProcStats.lastSelNode != nullptr)
+                {
+                    Vector3d difflastpos = rend->m_starProcStats.obsPos - rend->m_starProcStats.lastSelNode->getCenter();
+                    fmt::fprintf(*overlay, "Last sel node: [%f, %f, %f,], scale %f, in frustum: %i.\n", difflastpos.x(), difflastpos.y(), difflastpos.z(), rend->m_starProcStats.lastSelNode->getScale(), rend->m_starProcStats.lastSelNodeInFrustum);
+                }
+                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f (%f) : %f / %f], [%f, %f, %f]\n",
                     node->isInFrustum(rend->m_starProcStats.frustPlanes),
                     node->isInCell(rend->m_starProcStats.obsPos),
                     dist,
                     fdist,
                     dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
-                    rend->m_starProcStats.limit);
+                    rend->m_starProcStats.limit,
+                    diffpos.x(), diffpos.y(), diffpos.z());
             }
             else
             {

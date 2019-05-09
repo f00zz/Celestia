@@ -43,7 +43,7 @@ class OctreeNode
         ZPos = 4,
     };
 
-    OctreeNode(const Eigen::Vector3d& cellCenterPos, double scale, size_t = 75, OctreeNode *parent = nullptr);
+    OctreeNode(const Eigen::Vector3d& cellCenterPos, double scale, size_t = MaxObjectsPerNode, OctreeNode *parent = nullptr);
     ~OctreeNode();
 
     double getScale() const { return m_scale; }
