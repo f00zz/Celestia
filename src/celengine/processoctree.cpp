@@ -19,19 +19,19 @@ bool OctreeProcStats::isSelNode(const OctreeNode *node) const
 
 void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, Quaternionf orientation, float fovY, float aspectRatio)
 {
-    Vector3d planeNormals[5];
-    Eigen::Matrix3f rot = orientation.toRotationMatrix();
-    double h = (float) tan(fovY / 2);
-    double w = h * aspectRatio;
-    planeNormals[0] = Vector3d(0.0, 1.0, -h);
-    planeNormals[1] = Vector3d(0.0, -1.0, -h);
-    planeNormals[2] = Vector3d(1.0, 0.0, -w);
-    planeNormals[3] = Vector3d(-1.0, 0.0, -w);
-    planeNormals[4] = Vector3d(0.0, 0.0, -1.0);
+    Vector3f planeNormals[5];
+    Quaternionf rot = orientation.conjugate();
+    float h = (float) tan(fovY / 2);
+    float w = h * aspectRatio;
+    planeNormals[0] = Vector3f(0.0, 1.0, -h);
+    planeNormals[1] = Vector3f(0.0, -1.0, -h);
+    planeNormals[2] = Vector3f(1.0, 0.0, -w);
+    planeNormals[3] = Vector3f(-1.0, 0.0, -w);
+    planeNormals[4] = Vector3f(0.0, 0.0, -1.0);
     for (int i = 0; i < 5; i++)
     {
-        planeNormals[i] = rot.cast<double>().transpose() * planeNormals[i].normalized();
-        frustumPlanes[i] = Frustum::PlaneType(planeNormals[i].cast<float>(), position.cast<float>());
+        planeNormals[i] = rot * planeNormals[i].normalized();
+        frustumPlanes[i] = Frustum::PlaneType(planeNormals[i], position.cast<float>());
     }
 }
 
@@ -64,8 +64,8 @@ void processVisibleStars(
     // the cellCenterPos of the node minus the boundingRadius of the node, scale * SQRT3.
     float minDistance = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
 
-    if (minDistance > 0 && limitingFactor < astro::absToAppMag(node->getBrightest(), minDistance))
-        return;
+//    if (minDistance > 0 && limitingFactor < astro::absToAppMag(node->getBrightest(), minDistance))
+//        return;
     // Process the objects in this node
     float dimmest = minDistance > 0 ? astro::appToAbsMag(limitingFactor, minDistance) : 1000;
 
@@ -112,6 +112,17 @@ void processVisibleStars(
         }
         if (stats != nullptr)
             stats->height = h;
+    }
+    else
+    {
+        if (stats != nullptr && stats->selection.getType() == Selection::Type_Star)
+        {
+            if (node->isInCell(stats->selection.star()->getPosition()))
+            {
+                stats->faintest = node->getFaintest();
+                stats->appFaintest = astro::absToAppMag(node->getFaintest(), minDistance);
+            }
+        }
     }
 }
 

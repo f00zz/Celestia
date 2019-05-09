@@ -3476,11 +3476,13 @@ void CelestiaCore::renderOverlay()
         if (showFPSCounter)
         {
             Renderer *rend = getRenderer();
-            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nsel star: [ %i : %i : %i ]\nsel dso: [ %i : %i : %i ]\n"),
+            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i : %f / %f ]\nDSOs: [ %i : %i : %i ]\nsel star: [ %i : %i : %i ]\nsel dso: [ %i : %i : %i ]\n"),
                          fps,
                          rend->m_starProcStats.objects,
                          rend->m_starProcStats.nodes,
                          rend->m_starProcStats.height,
+                         rend->m_starProcStats.faintest,
+                         rend->m_starProcStats.appFaintest,
                          rend->m_dsoProcStats.objects,
                          rend->m_dsoProcStats.nodes,
                          rend->m_dsoProcStats.height,
@@ -3495,7 +3497,14 @@ void CelestiaCore::renderOverlay()
             if (lastSelection.getType() == Selection::Type_Star && (node = lastSelection.star()->getOctreeNode()) != nullptr)
             {
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
-                fmt::fprintf(*overlay, "Sel Node: [ %f : %f / %f]\n", dist, dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999, rend->m_starProcStats.limit);
+                float fdist = dist;
+                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f : %f (%f) / %f]\n",
+                    node->isInFrustum(rend->m_starProcStats.frustPlanes),
+                    node->isInCell(rend->m_starProcStats.obsPos),
+                    dist,
+                    fdist,
+                    dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
+                    rend->m_starProcStats.limit);
             }
             else
             {

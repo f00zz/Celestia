@@ -6752,6 +6752,7 @@ void Renderer::renderPointStars(const AstroDatabase& aDB,
     m_starProcStats.selection = m_selected;
     m_starProcStats.obsPos = obsPos;
     m_starProcStats.limit = faintestMagNight;
+    create5FrustumPlanes(m_starProcStats.frustPlanes, obsPos, observer.getOrientationf(), degToRad(fov), windowWidth / windowHeight);
     processVisibleStars(
         aDB.getStarOctree(),
         starRenderer,
@@ -7000,7 +7001,7 @@ void Renderer::renderDeepSkyObjects(const Universe&  universe,
     dsoRenderer.pixelSize        = pixelSize;
     dsoRenderer.brightnessScale  = brightnessScale * corrFac;
     dsoRenderer.brightnessBias   = brightnessBias;
-    dsoRenderer.avgAbsMag        = 6;
+    dsoRenderer.avgAbsMag        = faintestMagNight / 2;
     dsoRenderer.faintestMag      = faintestMag;
     dsoRenderer.faintestMagNight = faintestMagNight;
     dsoRenderer.saturationMag    = saturationMag;

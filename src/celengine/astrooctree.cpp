@@ -188,7 +188,7 @@ bool OctreeNode::isInFrustum(const Frustum::PlaneType *planes) const
     {
         const Frustum::PlaneType& plane = planes[i];
 
-        double r = m_scale * plane.normal().cwiseAbs().sum();
+        float r = m_scale * plane.normal().cwiseAbs().sum();
         if (plane.signedDistance(m_cellCenter.cast<float>()) < -r)
             return false;
     }
@@ -199,9 +199,9 @@ bool OctreeNode::isInCell(const Vector3d& pos) const
 {
     Vector3d rpos = pos - getCenter();
     double s = getScale();
-    if (rpos.x() >= - s && rpos.x() <= s &&
-        rpos.y() >= - s && rpos.y() <= s &&
-        rpos.z() >= - s && rpos.z() <= s)
+    if (rpos.x() > - s && rpos.x() <= s &&
+        rpos.y() > - s && rpos.y() <= s &&
+        rpos.z() > - s && rpos.z() <= s)
         return true;
     return false;
 }

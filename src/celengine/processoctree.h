@@ -21,6 +21,9 @@ struct OctreeProcStats
     Eigen::Vector3d obsPos;
     bool selInFrustum;
     float limit;
+    float faintest;
+    float appFaintest;
+    Frustum::PlaneType frustPlanes[5];
     bool isSelNode(const OctreeNode *) const;
     void reset()
     {
@@ -31,7 +34,9 @@ struct OctreeProcStats
         selProc = false;
         selNode = false;
         selInFrustum = false;
-        float limit = 9999;
+        limit = 9999;
+        faintest = 1000;
+        appFaintest = 1001;
     }
 };
 
@@ -47,6 +52,8 @@ class ObjectProcesor
 
 typedef ObjectProcesor<const Star*> StarProcesor;
 typedef ObjectProcesor<const DeepSkyObject*> DsoProcesor;
+
+void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Eigen::Vector3d position, Eigen::Quaternionf orientation, float fovY, float aspectRatio);
 
 void processVisibleStars(
     const OctreeNode *node,
