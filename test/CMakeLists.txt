@@ -12,3 +12,6 @@ target_link_libraries(astrodb celengine celutil celephem celtxf)
 
 add_executable(octree octree.cpp)
 target_link_libraries(octree celengine celutil)
+
+add_executable(frustum frustum.cpp)
+target_link_libraries(frustum celengine celutil)
