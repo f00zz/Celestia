@@ -20,7 +20,7 @@ bool OctreeProcStats::isSelNode(const OctreeNode *node) const
 void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, Quaternionf orientation, float fovY, float aspectRatio)
 {
     Vector3f planeNormals[5];
-    Quaternionf rot = orientation.conjugate();
+    Matrix<float, 3, 3> rot = orientation.toRotationMatrix();
     float h = (float) tan(fovY / 2);
     float w = h * aspectRatio;
     planeNormals[0] = Vector3f(0.0, 1.0, -h);
@@ -30,7 +30,7 @@ void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, 
     planeNormals[4] = Vector3f(0.0, 0.0, -1.0);
     for (int i = 0; i < 5; i++)
     {
-        planeNormals[i] = rot * planeNormals[i].normalized();
+        planeNormals[i] = rot.transpose() * planeNormals[i].normalized();
         frustumPlanes[i] = Frustum::PlaneType(planeNormals[i], position.cast<float>());
     }
 }

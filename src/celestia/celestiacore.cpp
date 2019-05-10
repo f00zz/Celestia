@@ -3494,23 +3494,36 @@ void CelestiaCore::renderOverlay()
             OctreeNode *node = nullptr;
             if (lastSelection.getType() == Selection::Type_Star && (node = lastSelection.star()->getOctreeNode()) != nullptr)
             {
+                if (rend->m_starProcStats.lastSelNode != nullptr)
+                {
+                    const OctreeNode *lastnode = rend->m_starProcStats.lastSelNode;
+                    Vector3d difflastpos = rend->m_starProcStats.obsPos - lastnode->getCenter();
+                    double dist = (rend->m_starProcStats.obsPos - lastnode->getCenter()).norm() - node->getScale() * SQRT3;
+                    fmt::fprintf(*overlay, "Last sel node: [%f, %f, %f,], %f: [%f : %f],scale %f, in frustum: [ %i : %i ].\n",
+                        difflastpos.x(),
+                        difflastpos.y(),
+                        difflastpos.z(),
+                        dist,
+                        dist > 0 ? astro::absToAppMag((double)lastnode->getBrightest(), dist) : 9999,
+                        lastnode->getBrightest(),
+                        lastnode->getScale(),
+                        rend->m_starProcStats.lastSelNodeInFrustum,
+                        lastnode->isInFrustum(rend->m_starProcStats.frustPlanes)
+                    );
+                }
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
                 float fdist = dist;
                 Vector3d diffpos = rend->m_starProcStats.obsPos - node->getCenter();
-
-                if (rend->m_starProcStats.lastSelNode != nullptr)
-                {
-                    Vector3d difflastpos = rend->m_starProcStats.obsPos - rend->m_starProcStats.lastSelNode->getCenter();
-                    fmt::fprintf(*overlay, "Last sel node: [%f, %f, %f,], scale %f, in frustum: %i.\n", difflastpos.x(), difflastpos.y(), difflastpos.z(), rend->m_starProcStats.lastSelNode->getScale(), rend->m_starProcStats.lastSelNodeInFrustum);
-                }
-                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f (%f) : %f / %f], [%f, %f, %f]\n",
+                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f (%f) : %f / %f], [%f, %f, %f], scale: %f.\n",
                     node->isInFrustum(rend->m_starProcStats.frustPlanes),
                     node->isInCell(rend->m_starProcStats.obsPos),
                     dist,
                     fdist,
                     dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
                     rend->m_starProcStats.limit,
-                    diffpos.x(), diffpos.y(), diffpos.z());
+                    diffpos.x(), diffpos.y(), diffpos.z(),
+                    node->getScale()
+                );
             }
             else
             {

@@ -12,7 +12,7 @@ int main()
 {
     Frustum::PlaneType planes[5];
     Vector3d pos(0, 0, 0);
-    OctreeNode node(Vector3d(0, 0, -100), 1);
+    OctreeNode node(Vector3d(0, 0, 0.6), 1);
     bool last_in = false;
     size_t nout = 0;
     for (int i = 0; i < 10000; i++)
