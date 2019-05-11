@@ -275,6 +275,8 @@ bool StcDataLoader::load(istream &in)
                 m_db->eraseNames(catalogNumber);
                 m_db->addNames(catalogNumber, objName);
             }
+            if (m_db->getObjectNameList(catalogNumber).empty())
+                fmt::fprintf(cerr, "Star nr %i is probably without names!\n", catalogNumber);
             successCount++;
         }
         else

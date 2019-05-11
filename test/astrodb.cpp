@@ -73,8 +73,8 @@ int main()
     ret = nloader.load(string("data/starnames.dat"));
     cout << "Names data loaded with status: " << ret << endl;
 
-    objectNames(adb, adb.nameToIndex("TAU Boo"));
-    objectNames(adb, adb.starnameToIndex("TAU Boo"));
+//    objectNames(adb, adb.nameToIndex("TAU Boo"));
+//    objectNames(adb, adb.starnameToIndex("TAU Boo"));
 
     ret = stcloader.load(string("data/revised.stc"));
     cout << "Stc data loaded with status: " << ret << endl;
@@ -85,12 +85,26 @@ int main()
     ret = stcloader.load(string("data/nearstars.stc"));
     cout << "Stc data loaded with status: " << ret << endl;
 
+    ret = stcloader.load(string("data/visualbins.stc"));
+    cout << "Stc data loaded with status: " << ret << endl;
+
+    ret = stcloader.load(string("data/spectbins.stc"));
+    cout << "Stc data loaded with status: " << ret << endl;
+
     ret = stcloader.load(string("data/charm2.stc"));
     cout << "Stc data loaded with status: " << ret << endl;
 
-    xloader.catalog = AstroDatabase::Gliese;
+    xloader.catalog = AstroDatabase::HenryDraper;
     ret = xloader.load("data/hdxindex.dat");
-    cout << "Gliese HD data loaded with status: " << ret << endl;
+    cout << "HD data loaded with status: " << ret << endl;
+
+    xloader.catalog = AstroDatabase::SAO;
+    ret = xloader.load("data/saoxindex.dat");
+    cout << "SAO data loaded with status: " << ret << endl;
+
+    xloader.catalog = AstroDatabase::Gliese;
+    ret = xloader.load("data/gliesexindex.dat");
+    cout << "Gliese data loaded with status: " << ret << endl;
 
     ret = dsoloader.load("data/galaxies.dsc");
     cout << "Dsc data loaded with status: " << ret << endl;
