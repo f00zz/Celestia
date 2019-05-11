@@ -27,6 +27,7 @@ struct OctreeProcStats
     Frustum::PlaneType frustPlanes[5];
     const OctreeNode *lastSelNode;
     bool lastSelNodeInFrustum;
+    bool selWrongOrder;
     bool isSelNode(const OctreeNode *) const;
     void reset()
     {
@@ -42,6 +43,7 @@ struct OctreeProcStats
         appFaintest = 1001;
         lastSelNode = nullptr;
         lastSelNodeInFrustum = false;
+        selWrongOrder = false;
     }
 };
 

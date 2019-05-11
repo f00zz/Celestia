@@ -199,9 +199,9 @@ bool OctreeNode::isInCell(const Vector3d& pos) const
 {
     Vector3d rpos = pos - getCenter();
     double s = getScale();
-    if (rpos.x() > - s && rpos.x() <= s &&
-        rpos.y() > - s && rpos.y() <= s &&
-        rpos.z() > - s && rpos.z() <= s)
+    if (rpos.x() >= - s && rpos.x() < s &&
+        rpos.y() >= - s && rpos.y() < s &&
+        rpos.z() >= - s && rpos.z() < s)
         return true;
     return false;
 }
@@ -310,14 +310,28 @@ int OctreeNode::check(float max, int level, bool fatal)
             fmt::fprintf(cout, "Object with mag %f wrongly assigned to mag %f on level %i!\n", obj.second->getAbsoluteMagnitude(), obj.first, level);
             if (fatal)
                 exit(1);
-            if (nerr == 0)
-                nerr = 1;
+            nerr = 1;
         }
     }
     for(ObjectList::const_iterator it = m_objects.begin(); it != m_objects.end(); it++)
     {
         ObjectList::const_iterator it2 = it;
         it2++;
+        if (!isInCell(it->second->getPosition()))
+        {
+            Vector3d rpos = it->second->getPosition() - getCenter();
+            fmt::fprintf(
+                cout,
+                "\nObject nr %i on level %i and scale %f out of cell (rel pos [%f : %f : %f])!\n",
+                it->second->getIndex(),
+                level,
+                getScale(),
+                rpos.x(), rpos.y(), rpos.z()
+            );
+            if (fatal)
+                exit(1);
+            nerr = 1;
+        }
         if (it2 != m_objects.end() && it->first > it2->first)
         {
             fmt::fprintf(cout, "\nObjects on level %i wrongly sorted!\n", level);
@@ -337,8 +351,7 @@ int OctreeNode::check(float max, int level, bool fatal)
         }
         if (fatal)
             exit(1);
-        if (nerr == 0)
-            nerr = 1;
+        nerr = 1;
     }
     for (const auto &child : m_children)
     {

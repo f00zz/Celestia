@@ -53,14 +53,6 @@ void processVisibleStars(
             stats->selNode = true;
             stats->selInFrustum = false;
         }
-        if (stats->selection.getType() == Selection::Type_Star)
-        {
-            if (node->isInCell(stats->selection.star()->getPosition()))
-            {
-                stats->lastSelNode = node;
-                stats->lastSelNodeInFrustum = false;
-            }
-        }
     }
 
     if (!node->isInFrustum(frustumPlanes))
@@ -68,6 +60,19 @@ void processVisibleStars(
 
     if (stats != nullptr)
     {
+        if (stats->selection.getType() == Selection::Type_Star)
+        {
+            if (node->isInCell(stats->selection.star()->getPosition()))
+            {
+                if (stats->lastSelNode != nullptr)
+                {
+                    if (stats->lastSelNode->getScale() < node->getScale())
+                        stats->selWrongOrder = true;
+                }
+                stats->lastSelNode = node;
+                stats->lastSelNodeInFrustum = false;
+            }
+        }
         if (stats->lastSelNode == node)
             stats->lastSelNodeInFrustum = true;
 

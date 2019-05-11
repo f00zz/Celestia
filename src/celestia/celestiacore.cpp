@@ -3476,7 +3476,7 @@ void CelestiaCore::renderOverlay()
         if (showFPSCounter)
         {
             Renderer *rend = getRenderer();
-            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nLimit: %f\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ]\nsel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
+            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ] DSOs: [ %i : %i : %i ]\nLimit: %f, proc order err: %i\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ] sel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
                          fps,
                          rend->m_starProcStats.objects,
                          rend->m_starProcStats.nodes,
@@ -3485,6 +3485,7 @@ void CelestiaCore::renderOverlay()
                          rend->m_dsoProcStats.nodes,
                          rend->m_dsoProcStats.height,
                          rend->m_starProcStats.limit,
+                         rend->m_starProcStats.selWrongOrder,
                          rend->m_starProcStats.selProc,
                          rend->m_starProcStats.selNode,
                          rend->m_starProcStats.selInFrustum,
@@ -3515,15 +3516,26 @@ void CelestiaCore::renderOverlay()
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
                 float fdist = dist;
                 Vector3d diffpos = rend->m_starProcStats.obsPos - node->getCenter();
-                fmt::fprintf(*overlay, "Sel Node: pos [%f, %f, %f], dist: %f, [ max app %f : max abs %f], scale: %f in frust: %i, with obs: %i.\n",
+                Vector3d objrelpos = node->getCenter() - lastSelection.star()->getPosition();
+                fmt::fprintf(*overlay, "Sel Node: pos [%f, %f, %f], dist: %f, [ max app %f : max abs %f], scale: %f in frust: %i, with obs: %i.\nPos rel node: [%f : %f : %f]\n",
                     diffpos.x(), diffpos.y(), diffpos.z(),
                     dist,
                     dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
                     node->getBrightest(),
                     node->getScale(),
                     node->isInFrustum(rend->m_starProcStats.frustPlanes),
-                    node->isInCell(rend->m_starProcStats.obsPos)
+                    node->isInCell(rend->m_starProcStats.obsPos),
+                    objrelpos.x(),objrelpos.y(),objrelpos.z()
                 );
+                while(node != nullptr)
+                {
+                    if (node->isInFrustum(rend->m_starProcStats.frustPlanes))
+                        *overlay << "+ ";
+                    else
+                        *overlay << "- ";
+                    node = node->getParent();
+                }
+                *overlay << endl;
             }
             else
             {
