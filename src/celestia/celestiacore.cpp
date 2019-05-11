@@ -3468,7 +3468,7 @@ void CelestiaCore::renderOverlay()
     {
         // Speed
         glPushMatrix();
-        glTranslatef(0.0f, (float) (fontHeight * 8 + 5), 0.0f);
+        glTranslatef(0.0f, (float) (fontHeight * 10 + 5), 0.0f);
         glColor4f(0.7f, 0.7f, 1.0f, 1.0f);
 
         overlay->beginText();
@@ -3476,7 +3476,7 @@ void CelestiaCore::renderOverlay()
         if (showFPSCounter)
         {
             Renderer *rend = getRenderer();
-            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ]\nsel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
+            fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ]\nDSOs: [ %i : %i : %i ]\nLimit: %f\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ]\nsel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
                          fps,
                          rend->m_starProcStats.objects,
                          rend->m_starProcStats.nodes,
@@ -3484,6 +3484,7 @@ void CelestiaCore::renderOverlay()
                          rend->m_dsoProcStats.objects,
                          rend->m_dsoProcStats.nodes,
                          rend->m_dsoProcStats.height,
+                         rend->m_starProcStats.limit,
                          rend->m_starProcStats.selProc,
                          rend->m_starProcStats.selNode,
                          rend->m_starProcStats.selInFrustum,
@@ -3499,7 +3500,7 @@ void CelestiaCore::renderOverlay()
                     const OctreeNode *lastnode = rend->m_starProcStats.lastSelNode;
                     Vector3d difflastpos = rend->m_starProcStats.obsPos - lastnode->getCenter();
                     double dist = (rend->m_starProcStats.obsPos - lastnode->getCenter()).norm() - node->getScale() * SQRT3;
-                    fmt::fprintf(*overlay, "Last sel node: [%f, %f, %f,], %f: [%f : %f],scale %f, in frustum: [ %i : %i ].\n",
+                    fmt::fprintf(*overlay, "Last sel node: pos [%f, %f, %f,], dist: %f, [ max app %f : max abs %f], scale %f, in frustum: [ %i : %i ].\n",
                         difflastpos.x(),
                         difflastpos.y(),
                         difflastpos.z(),
@@ -3514,15 +3515,14 @@ void CelestiaCore::renderOverlay()
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
                 float fdist = dist;
                 Vector3d diffpos = rend->m_starProcStats.obsPos - node->getCenter();
-                fmt::fprintf(*overlay, "Sel Node: in frust: %i, with obs: %i, [ %f (%f) : %f / %f], [%f, %f, %f], scale: %f.\n",
-                    node->isInFrustum(rend->m_starProcStats.frustPlanes),
-                    node->isInCell(rend->m_starProcStats.obsPos),
-                    dist,
-                    fdist,
-                    dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
-                    rend->m_starProcStats.limit,
+                fmt::fprintf(*overlay, "Sel Node: pos [%f, %f, %f], dist: %f, [ max app %f : max abs %f], scale: %f in frust: %i, with obs: %i.\n",
                     diffpos.x(), diffpos.y(), diffpos.z(),
-                    node->getScale()
+                    dist,
+                    dist > 0 ? astro::absToAppMag((double)node->getBrightest(), dist) : 9999,
+                    node->getBrightest(),
+                    node->getScale(),
+                    node->isInFrustum(rend->m_starProcStats.frustPlanes),
+                    node->isInCell(rend->m_starProcStats.obsPos)
                 );
             }
             else
@@ -4391,7 +4391,7 @@ bool CelestiaCore::initRenderer()
 
 
 static void loadCrossIndex(CrossIndexDataLoader &xloader,
-                           StarDatabase::Catalog catalog,
+                           AstroDatabase::Catalog catalog,
                            const string& filename)
 {
     if (!filename.empty())
@@ -4453,9 +4453,9 @@ bool CelestiaCore::readStars(const CelestiaConfig& cfg,
         }
     }
     CrossIndexDataLoader xloader(&aDB);
-    loadCrossIndex(xloader, StarDatabase::HenryDraper, cfg.HDCrossIndexFile);
-    loadCrossIndex(xloader, StarDatabase::SAO,         cfg.SAOCrossIndexFile);
-    loadCrossIndex(xloader, StarDatabase::Gliese,      cfg.GlieseCrossIndexFile);
+    loadCrossIndex(xloader, AstroDatabase::HenryDraper, cfg.HDCrossIndexFile);
+    loadCrossIndex(xloader, AstroDatabase::SAO,         cfg.SAOCrossIndexFile);
+    loadCrossIndex(xloader, AstroDatabase::Gliese,      cfg.GlieseCrossIndexFile);
 
     // Next, read any ASCII star catalog files specified in the StarCatalogs
     // list.

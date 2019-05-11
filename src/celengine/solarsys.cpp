@@ -24,6 +24,7 @@
 #include "universe.h"
 #include "multitexture.h"
 #include "parseobject.h"
+#include "frame.h"
 #include "frametree.h"
 #include "timeline.h"
 #include "timelinephase.h"
