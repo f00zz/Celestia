@@ -17,7 +17,7 @@ bool OctreeProcStats::isSelNode(const OctreeNode *node) const
     return false;
 }
 
-void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Vector3d position, Quaternionf orientation, float fovY, float aspectRatio)
+void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, const Vector3d &position, const Quaternionf &orientation, float fovY, float aspectRatio)
 {
     Vector3f planeNormals[5];
     Matrix<float, 3, 3> rot = orientation.toRotationMatrix();
@@ -134,8 +134,8 @@ void processVisibleStars(
 void processVisibleStars(
     const OctreeNode *node,
     StarProcesor& procesor,
-    Vector3d position,
-    Quaternionf orientation,
+    const Vector3d &position,
+    const Quaternionf &orientation,
     float fovY,
     float aspectRatio,
     float limitingFactor,
@@ -228,8 +228,8 @@ void processVisibleDsos(
 void processVisibleDsos(
     const OctreeNode *node,
     DsoProcesor& procesor,
-    Vector3d position,
-    Quaternionf orientation,
+    const Vector3d &position,
+    const Quaternionf &orientation,
     float fovY,
     float aspectRatio,
     float limitingFactor,

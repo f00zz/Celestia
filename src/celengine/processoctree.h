@@ -58,7 +58,7 @@ class ObjectProcesor
 typedef ObjectProcesor<const Star*> StarProcesor;
 typedef ObjectProcesor<const DeepSkyObject*> DsoProcesor;
 
-void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, Eigen::Vector3d position, Eigen::Quaternionf orientation, float fovY, float aspectRatio);
+void create5FrustumPlanes(Frustum::PlaneType *, const Eigen::Vector3d &, const Eigen::Quaternionf &, float, float);
 
 void processVisibleStars(
     const OctreeNode *node,
@@ -71,8 +71,8 @@ void processVisibleStars(
 void processVisibleStars(
     const OctreeNode *node,
     StarProcesor& procesor,
-    Eigen::Vector3d position,
-    Eigen::Quaternionf orientation,
+    const Eigen::Vector3d &position,
+    const Eigen::Quaternionf &orientation,
     float fovY,
     float aspectRatio,
     float limitingFactor,
@@ -89,8 +89,8 @@ void processVisibleDsos(
 void processVisibleDsos(
     const OctreeNode *node,
     DsoProcesor& procesor,
-    Eigen::Vector3d position,
-    Eigen::Quaternionf orientation,
+    const Eigen::Vector3d &position,
+    const Eigen::Quaternionf &orientation,
     float fovY,
     float aspectRatio,
     float limitingFactor,
