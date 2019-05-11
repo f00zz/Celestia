@@ -188,7 +188,7 @@ bool OctreeNode::isInFrustum(const Frustum::PlaneType *planes) const
     {
         const Frustum::PlaneType& plane = planes[i];
 
-        float r = m_scale * plane.normal().cwiseAbs().sum();
+        float r = m_scale * plane.normal().cwiseAbs().sum() * 1.1;
         if (plane.signedDistance(m_cellCenter.cast<float>()) < -r)
             return false;
     }
