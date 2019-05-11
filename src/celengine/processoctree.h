@@ -10,6 +10,7 @@ class OctreeNode;
 
 constexpr double SQRT3 = 1.732050807568877;
 
+#ifdef OCTREE_DEBUG
 struct OctreeProcStats
 {
     size_t objects { 0 };
@@ -46,6 +47,7 @@ struct OctreeProcStats
         selWrongOrder = false;
     }
 };
+#endif
 
 template<typename T>
 class ObjectProcesor
@@ -67,8 +69,12 @@ void processVisibleStars(
     StarProcesor& procesor,
     const Eigen::Vector3d& obsPos,
     const Frustum::PlaneType *frustumPlanes,
+#ifdef OCTREE_DEBUG
     float limitFactor,
     OctreeProcStats * = nullptr);
+#else
+    float limitFactor);
+#endif
 
 void processVisibleStars(
     const OctreeNode *node,
@@ -77,16 +83,24 @@ void processVisibleStars(
     const Eigen::Quaternionf &orientation,
     float fovY,
     float aspectRatio,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats * = nullptr);
+#else
+    float limitingFactor);
+#endif
 
 void processVisibleDsos(
     const OctreeNode *node,
     DsoProcesor& procesor,
     const Eigen::Vector3d& obsPos,
     const Frustum::PlaneType *frustumPlanes,
+#ifdef OCTREE_DEBUG
     float limitFactor,
     OctreeProcStats * = nullptr);
+#else
+        float limitFactor);
+#endif
 
 void processVisibleDsos(
     const OctreeNode *node,
@@ -95,8 +109,12 @@ void processVisibleDsos(
     const Eigen::Quaternionf &orientation,
     float fovY,
     float aspectRatio,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats * = nullptr);
+#else
+    float limitingFactor);
+#endif
 
 void processCloseStars(const OctreeNode *node, StarProcesor& procesor, const Eigen::Vector3d& obsPos, double bRadius);
 void processCloseDsos(const OctreeNode *node, DsoProcesor& procesor, const Eigen::Vector3d& obsPos, double bRadius);

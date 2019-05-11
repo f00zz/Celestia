@@ -376,10 +376,11 @@ class Renderer
         LightingState::EclipseShadowVector* eclipseShadows;
     };
 
+#ifdef OCTREE_DEBUG
     OctreeProcStats m_starProcStats;
     OctreeProcStats m_dsoProcStats;
     Selection m_selected;
-
+#endif
  private:
     struct SkyVertex
     {

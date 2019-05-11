@@ -659,7 +659,9 @@ void CelestiaCore::mouseButtonUp(float x, float y, int button)
             sim->setSelection(newSel);
             if (!oldSel.empty() && oldSel == newSel)
                 sim->centerSelection();
+#ifdef OCTREE_DEBUG
             getRenderer()->m_selected = newSel;
+#endif
         }
         else if (button == RightButton)
         {
@@ -3475,6 +3477,7 @@ void CelestiaCore::renderOverlay()
         *overlay << '\n';
         if (showFPSCounter)
         {
+#ifdef OCTREE_DEBUG
             Renderer *rend = getRenderer();
             fmt::fprintf(*overlay, _("FPS: %.1f\nStars: [ %i : %i : %i ] DSOs: [ %i : %i : %i ]\nLimit: %f, proc order err: %i\nsel star: [ processed: %i, node proc.: %i : node in frust.: %i ] sel dso: [ processed: %i, node proc.: %i, node in frust.: %i ]\n"),
                          fps,
@@ -3496,6 +3499,7 @@ void CelestiaCore::renderOverlay()
             OctreeNode *node = nullptr;
             if (lastSelection.getType() == Selection::Type_Star && (node = lastSelection.star()->getOctreeNode()) != nullptr)
             {
+                Vector3d selpos = lastSelection.star()->getPosition();
                 if (rend->m_starProcStats.lastSelNode != nullptr)
                 {
                     const OctreeNode *lastnode = rend->m_starProcStats.lastSelNode;
@@ -3530,9 +3534,21 @@ void CelestiaCore::renderOverlay()
                 while(node != nullptr)
                 {
                     if (node->isInFrustum(rend->m_starProcStats.frustPlanes))
-                        *overlay << "+ ";
+                        *overlay << "+";
                     else
-                        *overlay << "- ";
+                        *overlay << "-";
+                    if (node->isInCell(selpos))
+                        *overlay << "*";
+                    else
+                        *overlay << "o";
+                    if (node->getParent() != nullptr)
+                    {
+                        if (node->getParent()->getChild(selpos) == node)
+                            *overlay << "@";
+                        else
+                            *overlay << "#";
+                    }
+                    *overlay << " ";
                     node = node->getParent();
                 }
                 *overlay << endl;
@@ -3541,6 +3557,9 @@ void CelestiaCore::renderOverlay()
             {
                 *overlay << '\n';
             }
+#else
+            fmt::fprintf(*overlay, _("FPS: %.1f\n"), fps);
+#endif
         }
         else
             *overlay << '\n';

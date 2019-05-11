@@ -8,6 +8,7 @@ using namespace Eigen;
 
 static constexpr double MAX_STAR_ORBIT_RADIUS = 1;
 
+#ifdef OCTREE_DEBUG
 bool OctreeProcStats::isSelNode(const OctreeNode *node) const
 {
     if (selection.getType() != Selection::Type_Star)
@@ -16,6 +17,7 @@ bool OctreeProcStats::isSelNode(const OctreeNode *node) const
         return true;
     return false;
 }
+#endif
 
 void create5FrustumPlanes(Frustum::PlaneType *frustumPlanes, const Vector3d &position, const Quaternionf &orientation, float fovY, float aspectRatio)
 {
@@ -40,9 +42,14 @@ void processVisibleStars(
     StarProcesor& procesor,
     const Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats *stats)
+#else
+    float limitingFactor)
+#endif
 {
+#ifdef OCTREE_NODE
     size_t h = 0;
     if (stats != nullptr)
     {
@@ -54,10 +61,12 @@ void processVisibleStars(
             stats->selInFrustum = false;
         }
     }
+#endif
 
     if (!node->isInFrustum(frustumPlanes))
         return;
 
+#ifdef OCTREE_NODE
     if (stats != nullptr)
     {
         if (stats->selection.getType() == Selection::Type_Star)
@@ -81,6 +90,7 @@ void processVisibleStars(
             stats->selInFrustum = true;
         }
     }
+#endif
     // Compute the distance to node; this is equal to the distance to
     // the cellCenterPos of the node minus the boundingRadius of the node, scale * SQRT3.
     float minDistance = (obsPosition - node->getCenter()).norm() - node->getScale() * SQRT3;
@@ -93,10 +103,12 @@ void processVisibleStars(
     for (const auto &objit : node->getObjects())
     {
         Star *obj = static_cast<Star*>(objit.second);
+#ifdef OCTREE_NODE
         if (stats != nullptr)
         {
             stats->objects++;
         }
+#endif
         if (obj->getAbsoluteMagnitude() < dimmest)
         {
             double distance = (obsPosition - obj->getPosition().cast<double>()).norm();
@@ -104,10 +116,12 @@ void processVisibleStars(
 
             if (appMag < limitingFactor || (distance < MAX_STAR_ORBIT_RADIUS && obj->getOrbit()))
             {
+#ifdef OCTREE_DEBUG
                 if (stats != nullptr && obj == stats->selection.obj)
                 {
                     stats->selProc = true;
                 }
+#endif
                 procesor.process(obj, distance, appMag);
             }
         }
@@ -126,6 +140,7 @@ void processVisibleStars(
                                 procesor,
                                 obsPosition,
                                 frustumPlanes,
+#ifdef OCTREE_DEBUG
                                 limitingFactor,
                                 stats);
             if (stats != nullptr && stats->height > h)
@@ -133,6 +148,10 @@ void processVisibleStars(
         }
         if (stats != nullptr)
             stats->height = h;
+#else
+                                limitingFactor);
+        }
+#endif
     }
 }
 
@@ -143,12 +162,26 @@ void processVisibleStars(
     const Quaternionf &orientation,
     float fovY,
     float aspectRatio,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats *stats)
+#else
+    float limitingFactor)
+#endif
 {
     Frustum::PlaneType fp[5];
     create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
-    processVisibleStars(node, procesor, position, fp, limitingFactor, stats);
+    processVisibleStars(
+        node,
+        procesor,
+        position,
+        fp,
+#ifdef OCTREE_DEBUG
+        limitingFactor,
+        stats);
+#else
+        limitingFactor);
+#endif
 }
 
 void processVisibleDsos(
@@ -156,15 +189,21 @@ void processVisibleDsos(
     DsoProcesor& procesor,
     const Eigen::Vector3d& obsPosition,
     const Frustum::PlaneType *frustumPlanes,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats *stats)
+#else
+    float limitingFactor)
+#endif
 {
+#ifdef OCTREE_DEBUG
     size_t h = 0;
     if (stats != nullptr)
     {
         stats->nodes++;
         h = stats->height + 1;
     }
+#endif
     // See if this node lies within the view frustum
 
     // Test the cubic octree node against each one of the five
@@ -182,13 +221,14 @@ void processVisibleDsos(
     for (const auto &objit : node->getObjects())
     {
         DeepSkyObject *obj = static_cast<DeepSkyObject*>(objit.second);
-
+#ifdef OCTREE_DEBUG
         if (stats != nullptr)
         {
             stats->objects++;
             if (obj == stats->selection.obj)
                 stats->selNode = true;
         }
+#endif
         float absMag = obj->getAbsoluteMagnitude();
         if (absMag < dimmest)
         {
@@ -197,10 +237,12 @@ void processVisibleDsos(
 
             if (appMag < limitingFactor)
             {
+#ifdef OCTREE_DEBUG
                 if (stats != nullptr && obj == stats->selection.obj)
                 {
                     stats->selProc = true;
                 }
+#endif
                 procesor.process(obj, distance, absMag);
             }
         }
@@ -220,6 +262,7 @@ void processVisibleDsos(
                 procesor,
                 obsPosition,
                 frustumPlanes,
+#ifdef OCTREE_DEBUG
                 limitingFactor,
                 stats);
             if (stats != nullptr && h < stats->height)
@@ -227,6 +270,10 @@ void processVisibleDsos(
         }
         if (stats != nullptr)
             stats->height = h;
+#else
+                limitingFactor);
+        }
+#endif
     }
 }
 
@@ -237,12 +284,26 @@ void processVisibleDsos(
     const Quaternionf &orientation,
     float fovY,
     float aspectRatio,
+#ifdef OCTREE_DEBUG
     float limitingFactor,
     OctreeProcStats *stats)
+#else
+    float limitingFactor)
+#endif
 {
     Frustum::PlaneType fp[5];
     create5FrustumPlanes(fp, position, orientation, fovY, aspectRatio);
-    processVisibleDsos(node, procesor, position, fp, limitingFactor, stats);
+    processVisibleDsos(
+        node,
+        procesor,
+        position,
+        fp,
+#ifdef OCTREE_DEBUG
+        limitingFactor,
+        stats);
+#else
+        limitingFactor);
+#endif
 }
 
 void processCloseStars(
