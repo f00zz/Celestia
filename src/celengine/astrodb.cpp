@@ -54,6 +54,10 @@ DeepSkyObject *AstroDatabase::getDSO(const std::string &name, bool tryGreek, boo
 
 AstroCatalog::IndexNumber AstroDatabase::catalogNumberToIndex(int catalog, AstroCatalog::IndexNumber nr) const
 {
+    if (catalog == Hipparcos && nr < HipparcosAstroCatalog::MaxCatalogNumber)
+        return nr;
+    if (catalog == Tycho && nr > HipparcosAstroCatalog::MaxCatalogNumber && nr < TychoAstroCatalog::MaxCatalogNumber)
+        return nr;
     std::map<int, CrossIndex*>::const_iterator it = m_catxindex.find(catalog);
     if (it != m_catxindex.end() && it->second->count(nr) > 0)
         return it->second->at(nr);
@@ -62,6 +66,10 @@ AstroCatalog::IndexNumber AstroDatabase::catalogNumberToIndex(int catalog, Astro
 
 AstroCatalog::IndexNumber AstroDatabase::indexToCatalogNumber(int catalog, AstroCatalog::IndexNumber nr) const
 {
+    if (catalog == Hipparcos && nr < HipparcosAstroCatalog::MaxCatalogNumber)
+        return nr;
+    if (catalog == Tycho && nr > HipparcosAstroCatalog::MaxCatalogNumber && nr < TychoAstroCatalog::MaxCatalogNumber)
+        return nr;
     std::map<int, CrossIndex*>::const_iterator it = m_celxindex.find(catalog);
     if (it != m_celxindex.end() && it->second->count(nr) > 0)
         return it->second->at(nr);
