@@ -65,6 +65,7 @@ AstroCatalog::IndexNumber AstroDatabase::indexToCatalogNumber(int catalog, Astro
     std::map<int, CrossIndex*>::const_iterator it = m_celxindex.find(catalog);
     if (it != m_celxindex.end() && it->second->count(nr) > 0)
         return it->second->at(nr);
+//     cout << "No cross index entry for catalog " << catalog << "[" << nr << "]\n";
     return AstroCatalog::InvalidIndex;
 }
 
@@ -92,6 +93,10 @@ AstroCatalog::IndexNumber AstroDatabase::nameToIndex(const std::string& name, bo
         AstroCatalog::IndexNumber inr = ci.second->nameToCatalogNumber(name);
         if (inr == AstroCatalog::InvalidIndex)
             continue;
+        if (ci.first == Hipparcos && inr < HipparcosAstroCatalog::MaxCatalogNumber)
+            return inr;
+        if (ci.first == Tycho && inr > HipparcosAstroCatalog::MaxCatalogNumber && inr <= TychoAstroCatalog::MaxCatalogNumber)
+            return inr;
         nr = catalogNumberToIndex(ci.first, inr);
     }
     return nr;
@@ -134,7 +139,9 @@ std::string AstroDatabase::getObjectName(AstroCatalog::IndexNumber nr, bool i18n
 std::string AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int max) const
 {
     string names;
-    names.reserve(127); // optimize memory allocation
+    names.reserve(max); // optimize memory allocation
+    if (nr < HipparcosAstroCatalog::MaxCatalogNumber)
+        names = catalogNumberToString(Hipparcos, nr);
     NameDatabase::NumberIndex::const_iterator iter = m_nameDB.getFirstNameIter(nr);
     while (iter != m_nameDB.getFinalNameIter() && iter->first == nr && max > 0)
     {
@@ -155,6 +162,11 @@ std::string AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int m
         if (!isInCrossIndex(it.first, nr))
             continue;
         AstroCatalog::IndexNumber inr = indexToCatalogNumber(it.first, nr);
+        if (inr == AstroCatalog::InvalidIndex)
+        {
+//             cout << "Invalid cross index entry for catalog " << it.first << "[" << nr << "]\n";
+            continue;
+        }
         if (names.size() > 0)
             names += " / ";
         names += it.second->catalogNumberToName(inr);
@@ -171,24 +183,33 @@ bool AstroDatabase::addAstroCatalog(int id, AstroCatalog *catalog)
     return true;
 }
 
-bool AstroDatabase::addCatalogNumber(AstroCatalog::IndexNumber celnr, int catalog, AstroCatalog::IndexNumber catnr)
+bool AstroDatabase::addCatalogNumber(AstroCatalog::IndexNumber celnr, int catalog, AstroCatalog::IndexNumber catnr, bool overwrite)
 {
     if (m_catalogs.count(catalog) == 0)
+    {
+        fmt::fprintf(cerr, "Catalog %i not registered!\n", catalog);
         return false;
+    }
 
     if (m_catxindex.count(catalog) == 0)
         m_catxindex.insert(std::make_pair(catalog, new CrossIndex));
     CrossIndex *i = m_catxindex.find(catalog)->second;
-    if (i->count(catnr) > 0)
+    if (i->count(catnr) > 0 && !overwrite)
+    {
+        fmt::fprintf(cerr, "Cross index entry for catalog nr %i[%i] already exists!\n", catalog, catnr);
         return false;
-    i->insert(std::make_pair(catnr, celnr));
+    }
+    (*i)[catnr] = celnr;
 
     if (m_celxindex.count(catalog) == 0)
         m_celxindex.insert(std::make_pair(catalog, new CrossIndex));
     i = m_celxindex.find(catalog)->second;
-    if (i->count(celnr) > 0)
+    if (i->count(celnr) > 0 && !overwrite)
+    {
+        fmt::fprintf(cerr, "Cross index entry for celestia nr %i[%i] already exists (%i)!\n", catalog, celnr, (*i)[celnr]);
         return false;
-    i->insert(std::make_pair(celnr, catnr));
+    }
+    (*i)[celnr] = catnr;
     return true;
 }
 
@@ -216,8 +237,10 @@ bool AstroDatabase::addStar(Star *star)
     if (!addObject(star))
         return false;
     m_stars.insert(star);
+#ifdef OCTREE_DEBUG
     if (!m_starOctree.isDirty())
         cout << "Clean star Octree going to be dirty!\n";
+#endif
     m_starOctree.insertObject(star);
 //    fmt::fprintf(cout, "Added star  with magnitude %f.\n", star->getAbsoluteMagnitude());
     return true;
@@ -228,8 +251,10 @@ bool AstroDatabase::addDSO(DeepSkyObject *dso)
     if (!addObject(dso))
         return false;
     m_dsos.insert(dso);
+#ifdef OCTREE_DEBUG
     if (!m_dsoOctree.isDirty())
         cout << "Clean dso Octree going to be dirty!\n";
+#endif
     m_dsoOctree.insertObject(dso);
     return true;
 }

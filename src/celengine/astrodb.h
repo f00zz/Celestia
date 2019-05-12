@@ -93,7 +93,7 @@ class AstroDatabase {
     }
 
     bool addAstroCatalog(int, AstroCatalog*);
-    bool addCatalogNumber(AstroCatalog::IndexNumber, int, AstroCatalog::IndexNumber);
+    bool addCatalogNumber(AstroCatalog::IndexNumber, int, AstroCatalog::IndexNumber, bool = false);
 
     bool addObject(AstroObject *);
     bool addStar(Star *);

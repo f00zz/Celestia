@@ -112,7 +112,8 @@ int main()
     ret = dsoloader.load("data/globulars.dsc");
     cout << "Dsc data loaded with status: " << ret << endl;
 
-    objectNames(adb, 55203);
+    HipparcosAstroCatalog hipCat;
+/*    objectNames(adb, 55203);
     objectNames(adb, "C 1126+292");
     objectNames(adb, "NGC 3201");
     objectNames(adb, "36 Oph C");
@@ -122,6 +123,11 @@ int main()
     objectNames(adb, adb.starnameToIndex("TAU Boo"));
     assert(adb.getStar(70890) != nullptr);
     assert(adb.nameToIndex("Gliese 423") == 55203);
-    assert(adb.nameToIndex("ALF Cen") != AstroCatalog::InvalidIndex);
+    assert(adb.nameToIndex("ALF Cen") != AstroCatalog::InvalidIndex);*/
+    objectNames(adb, 19394);
+    objectNames(adb, 57087);
+    cout << adb.nameToIndex("HIP 19394") << endl;
+    cout << adb.nameToIndex("HIP 57087") << endl;
+    cout << hipCat.nameToCatalogNumber("HIP 19394") << endl;
     return 0;
 }
