@@ -381,6 +381,9 @@ class Renderer
     OctreeProcStats m_dsoProcStats;
     Selection m_selected;
 #endif
+
+    float m_avgDsoMag;
+
  private:
     struct SkyVertex
     {

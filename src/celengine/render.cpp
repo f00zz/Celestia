@@ -7000,7 +7000,7 @@ void Renderer::renderDeepSkyObjects(const Universe&  universe,
     dsoRenderer.pixelSize        = pixelSize;
     dsoRenderer.brightnessScale  = brightnessScale * corrFac;
     dsoRenderer.brightnessBias   = brightnessBias;
-    dsoRenderer.avgAbsMag        = faintestMagNight / 2;
+    dsoRenderer.avgAbsMag        = m_avgDsoMag;
     dsoRenderer.faintestMag      = faintestMag;
     dsoRenderer.faintestMagNight = faintestMagNight;
     dsoRenderer.saturationMag    = saturationMag;

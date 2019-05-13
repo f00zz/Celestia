@@ -49,7 +49,7 @@ void processVisibleStars(
     float limitingFactor)
 #endif
 {
-#ifdef OCTREE_NODE
+#ifdef OCTREE_DEBUG
     size_t h = 0;
     if (stats != nullptr)
     {
@@ -66,7 +66,7 @@ void processVisibleStars(
     if (!node->isInFrustum(frustumPlanes))
         return;
 
-#ifdef OCTREE_NODE
+#ifdef OCTREE_DEBUG
     if (stats != nullptr)
     {
         if (stats->selection.getType() == Selection::Type_Star)
@@ -103,7 +103,7 @@ void processVisibleStars(
     for (const auto &objit : node->getObjects())
     {
         Star *obj = static_cast<Star*>(objit.second);
-#ifdef OCTREE_NODE
+#ifdef OCTREE_DEBUG
         if (stats != nullptr)
         {
             stats->objects++;
@@ -208,7 +208,7 @@ void processVisibleDsos(
 
     // Test the cubic octree node against each one of the five
     // planes that define the infinite view frustum.
-    if (node->isInFrustum(frustumPlanes))
+    if (!node->isInFrustum(frustumPlanes))
         return;
 
     // Compute the distance to node; this is equal to the distance to

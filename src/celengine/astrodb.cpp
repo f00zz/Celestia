@@ -54,7 +54,7 @@ DeepSkyObject *AstroDatabase::getDSO(const std::string &name, bool tryGreek, boo
 
 AstroCatalog::IndexNumber AstroDatabase::catalogNumberToIndex(int catalog, AstroCatalog::IndexNumber nr) const
 {
-    if (catalog == Hipparcos && nr < HipparcosAstroCatalog::MaxCatalogNumber)
+    if (catalog == Hipparcos && nr > 0 && nr < HipparcosAstroCatalog::MaxCatalogNumber)
         return nr;
     if (catalog == Tycho && nr > HipparcosAstroCatalog::MaxCatalogNumber && nr < TychoAstroCatalog::MaxCatalogNumber)
         return nr;
@@ -66,7 +66,7 @@ AstroCatalog::IndexNumber AstroDatabase::catalogNumberToIndex(int catalog, Astro
 
 AstroCatalog::IndexNumber AstroDatabase::indexToCatalogNumber(int catalog, AstroCatalog::IndexNumber nr) const
 {
-    if (catalog == Hipparcos && nr < HipparcosAstroCatalog::MaxCatalogNumber)
+    if (catalog == Hipparcos && nr > 0 && nr < HipparcosAstroCatalog::MaxCatalogNumber)
         return nr;
     if (catalog == Tycho && nr > HipparcosAstroCatalog::MaxCatalogNumber && nr < TychoAstroCatalog::MaxCatalogNumber)
         return nr;
@@ -75,14 +75,6 @@ AstroCatalog::IndexNumber AstroDatabase::indexToCatalogNumber(int catalog, Astro
         return it->second->at(nr);
 //     cout << "No cross index entry for catalog " << catalog << "[" << nr << "]\n";
     return AstroCatalog::InvalidIndex;
-}
-
-bool AstroDatabase::isInCrossIndex(int catalog, AstroCatalog::IndexNumber nr) const
-{
-    std::map<int, CrossIndex*>::const_iterator it = m_catxindex.find(catalog);
-    if (it == m_catxindex.end() || it->second->count(nr) == 0)
-        return false;
-    return true;
 }
 
 AstroCatalog::IndexNumber AstroDatabase::nameToIndex(const std::string& name, bool tryGreek, bool smart) const
@@ -148,8 +140,6 @@ std::string AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int m
 {
     string names;
     names.reserve(max); // optimize memory allocation
-    if (nr < HipparcosAstroCatalog::MaxCatalogNumber)
-        names = catalogNumberToString(Hipparcos, nr);
     NameDatabase::NumberIndex::const_iterator iter = m_nameDB.getFirstNameIter(nr);
     while (iter != m_nameDB.getFinalNameIter() && iter->first == nr && max > 0)
     {
@@ -167,8 +157,6 @@ std::string AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int m
     {
         if (max == 0)
             break;
-        if (!isInCrossIndex(it.first, nr))
-            continue;
         AstroCatalog::IndexNumber inr = indexToCatalogNumber(it.first, nr);
         if (inr == AstroCatalog::InvalidIndex)
         {
@@ -338,4 +326,19 @@ AstroCatalog::IndexNumber AstroDatabase::getAutoIndex()
         return ret;
     }
     return AstroCatalog::InvalidIndex;
+}
+
+float AstroDatabase::avgDsoMag() const
+{
+    float avg = 0;
+    size_t n = m_dsos.size();
+    for(const auto & dso : m_dsos)
+    {
+        if (dso->getAbsoluteMagnitude() > 8)
+            avg += dso->getAbsoluteMagnitude();
+        else
+            n--;
+    }
+    avg /= n;
+    return avg;
 }

@@ -3497,9 +3497,9 @@ void CelestiaCore::renderOverlay()
                          rend->m_dsoProcStats.selInFrustum
                         );
             OctreeNode *node = nullptr;
-            if (lastSelection.getType() == Selection::Type_Star && (node = lastSelection.star()->getOctreeNode()) != nullptr)
+            if (lastSelection.isLuminous() && (node = lastSelection.luminous()->getOctreeNode()) != nullptr)
             {
-                Vector3d selpos = lastSelection.star()->getPosition();
+                Vector3d selpos = lastSelection.luminous()->getPosition();
                 if (rend->m_starProcStats.lastSelNode != nullptr)
                 {
                     const OctreeNode *lastnode = rend->m_starProcStats.lastSelNode;
@@ -3520,7 +3520,7 @@ void CelestiaCore::renderOverlay()
                 double dist = (rend->m_starProcStats.obsPos - node->getCenter()).norm() - node->getScale() * SQRT3;
                 float fdist = dist;
                 Vector3d diffpos = rend->m_starProcStats.obsPos - node->getCenter();
-                Vector3d objrelpos = node->getCenter() - lastSelection.star()->getPosition();
+                Vector3d objrelpos = node->getCenter() - lastSelection.luminous()->getPosition();
                 fmt::fprintf(*overlay, "Sel Node: pos [%f, %f, %f], dist: %f, [ max app %f : max abs %f], scale: %f in frust: %i, with obs: %i.\nPos rel node: [%f : %f : %f]\n",
                     diffpos.x(), diffpos.y(), diffpos.z(),
                     dist,
@@ -4225,6 +4225,7 @@ bool CelestiaCore::initSimulation(const string& configFileName,
         }
     }
     aDB.getDsoOctree()->check(-1000 , 0, false);
+    getRenderer()->m_avgDsoMag = aDB.avgDsoMag();
 
     /***** Load the solar system catalogs *****/
     // First read the solar system files listed individually in the

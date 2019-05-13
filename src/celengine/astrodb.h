@@ -71,7 +71,6 @@ class AstroDatabase {
 
     AstroCatalog::IndexNumber catalogNumberToIndex(int, AstroCatalog::IndexNumber) const;
     AstroCatalog::IndexNumber indexToCatalogNumber(int, AstroCatalog::IndexNumber) const;
-    bool isInCrossIndex(int, AstroCatalog::IndexNumber) const;
 
     std::string catalogNumberToString(AstroCatalog::IndexNumber) const;
     std::string catalogNumberToString(int, AstroCatalog::IndexNumber) const;
@@ -131,4 +130,6 @@ class AstroDatabase {
     OctreeNode* getDsoOctree() { return &m_dsoOctree; }
     const OctreeNode* getStarOctree() const { return &m_starOctree; }
     const OctreeNode* getDsoOctree() const { return &m_dsoOctree; }
+
+    float avgDsoMag() const;
 };
