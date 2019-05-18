@@ -31,6 +31,8 @@ set(CELENGINE_SOURCES
   console.h
   constellation.cpp
   constellation.h
+  crossindex.h
+  crossindex.cpp
   curveplot.cpp
   curveplot.h
   dataloader.h

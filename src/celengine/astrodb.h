@@ -8,6 +8,7 @@
 #include "name.h"
 #include "astroobj.h"
 #include "astrocat.h"
+#include "crossindex.h"
 #include "astrooctree.h"
 #include "dataloader.h"
 #include "star.h"
@@ -16,7 +17,6 @@
 
 class AstroDatabase {
  public:
-    typedef std::map<AstroCatalog::IndexNumber, AstroCatalog::IndexNumber> CrossIndex;
     typedef std::map<AstroCatalog::IndexNumber, AstroObject*> MainIndex;
     typedef std::map<int, AstroDataLoader*> LoadersMap;
     typedef std::set<Star*> StarsList;
@@ -93,6 +93,7 @@ class AstroDatabase {
 
     bool addAstroCatalog(int, AstroCatalog*);
     bool addCatalogNumber(AstroCatalog::IndexNumber, int, AstroCatalog::IndexNumber, bool = false);
+    bool addCatalogRange(AstroCatalog::IndexNumber, int, int, size_t, bool = false);
 
     bool addObject(AstroObject *);
     bool addStar(Star *);
@@ -132,4 +133,9 @@ class AstroDatabase {
     const OctreeNode* getDsoOctree() const { return &m_dsoOctree; }
 
     float avgDsoMag() const;
+
+    CrossIndex *getCelestiaCrossIndex(int);
+    const CrossIndex *getCelestiaCrossIndex(int) const;
+    CrossIndex *getCatalogCrossIndex(int);
+    const CrossIndex *getCatalogCrossIndex(int) const;
 };
