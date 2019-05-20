@@ -127,7 +127,36 @@ std::string AstroDatabase::getObjectName(AstroCatalog::IndexNumber nr, bool i18n
     return catalogNumberToString(nr);
 }
 
-std::string AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int max) const
+std::vector<std::string> AstroDatabase::getObjectNameList(AstroCatalog::IndexNumber nr, int max) const
+{
+    std::vector<std::string> ret;
+    NameDatabase::NumberIndex::const_iterator iter = m_nameDB.getFirstNameIter(nr);
+    while (iter != m_nameDB.getFinalNameIter() && iter->first == nr && max > 0)
+    {
+        ret.push_back(iter->second);
+        ++iter;
+        --max;
+    }
+
+    if (max == 0)
+        return ret;
+    for (const auto it : m_catalogs)
+    {
+        if (max == 0)
+            break;
+        AstroCatalog::IndexNumber inr = indexToCatalogNumber(it.first, nr);
+        if (inr == AstroCatalog::InvalidIndex)
+        {
+//             cout << "Invalid cross index entry for catalog " << it.first << "[" << nr << "]\n";
+            continue;
+        }
+        ret.push_back(it.second->catalogNumberToName(inr));
+        --max;
+    }
+    return ret;
+}
+
+std::string AstroDatabase::getObjectNames(AstroCatalog::IndexNumber nr, int max) const
 {
     string names;
     names.reserve(max); // optimize memory allocation

@@ -80,10 +80,17 @@ class AstroDatabase {
     {
         return getObjectName(o->getIndex(), i18n);
     }
-    std::string getObjectNameList(AstroCatalog::IndexNumber, int = 128) const;
-    std::string getObjectNameList(AstroObject *o, int n = 128) const
+
+    std::vector<std::string> getObjectNameList(AstroCatalog::IndexNumber, int = 128) const;
+    std::vector<std::string> getObjectNameList(AstroObject *o, int n = 128) const
     {
         return getObjectNameList(o->getIndex(), n);
+    }
+
+    std::string getObjectNames(AstroCatalog::IndexNumber, int = 128) const;
+    std::string getObjectNames(AstroObject *o, int n = 128) const
+    {
+        return getObjectNames(o->getIndex(), n);
     }
 
     std::vector<std::string> getCompletion(const std::string&name) const

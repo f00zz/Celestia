@@ -3597,7 +3597,7 @@ void CelestiaCore::renderOverlay()
                 if (sel != lastSelection)
                 {
                     lastSelection = sel;
-                    selectionNames = sim->getUniverse()->getDatabase().getObjectNameList(sel.star());
+                    selectionNames = sim->getUniverse()->getDatabase().getObjectNames(sel.star());
                     // Skip displaying the English name if a localized version is present.
                     string starName = sim->getUniverse()->getDatabase().getObjectName(sel.star());
                     string locStarName = sim->getUniverse()->getDatabase().getObjectName(sel.star(), true);
@@ -3631,7 +3631,7 @@ void CelestiaCore::renderOverlay()
                 if (sel != lastSelection)
                 {
                     lastSelection = sel;
-                    selectionNames = sim->getUniverse()->getDatabase().getObjectNameList(sel.deepsky());
+                    selectionNames = sim->getUniverse()->getDatabase().getObjectNames(sel.deepsky());
                     // Skip displaying the English name if a localized version is present.
                     string DSOName = sim->getUniverse()->getDatabase().getObjectName(sel.deepsky());
                     string locDSOName = sim->getUniverse()->getDatabase().getObjectName(sel.deepsky(), true);
