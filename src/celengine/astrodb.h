@@ -5,7 +5,7 @@
 #include <set>
 #include <climits>
 #include "selection.h"
-#include "name.h"
+#include "namedb.h"
 #include "astroobj.h"
 #include "astrocat.h"
 #include "crossindex.h"
