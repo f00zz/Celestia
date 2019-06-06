@@ -3469,8 +3469,13 @@ void CelestiaCore::renderOverlay()
     if (hudDetail > 0 && (overlayElements & ShowVelocity))
     {
         // Speed
+#ifdef OCTREE_DEBUG
+#define FPS_H 8
+#else
+#define FPS_H 2
+#endif
         glPushMatrix();
-        glTranslatef(0.0f, (float) (fontHeight * 10 + 5), 0.0f);
+        glTranslatef(0.0f, (float) (fontHeight * FPS_H + 5), 0.0f);
         glColor4f(0.7f, 0.7f, 1.0f, 1.0f);
 
         overlay->beginText();

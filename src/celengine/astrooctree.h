@@ -12,7 +12,7 @@ class OctreeNode
     typedef std::array<OctreeNode*, 8> Children;
     typedef std::multimap<float, LuminousObject*> ObjectList;
     static constexpr double MaxScale = 100000000000;
-    static constexpr size_t MaxObjectsPerNode = 40;
+    static constexpr size_t MaxObjectsPerNode = 10;
 
  protected:
     bool add(LuminousObject*);
