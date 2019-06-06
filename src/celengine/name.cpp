@@ -23,6 +23,7 @@ const Name& NameInfo::getLocalized()
 {
     if (m_localized.null())
     {
+        const char *s = m_canonical.str().c_str();
         const char *l = gettext(s);
         if (s == l)
         {
