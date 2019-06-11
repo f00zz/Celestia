@@ -50,7 +50,7 @@ class OctreeNode
     double getScale() const { return m_scale; }
     const Eigen::Vector3d& getCenter() const { return m_cellCenter; }
 
-    bool isInFrustum(const Frustum::PlaneType *planes) const;
+    bool isInFrustum(const celmath::Frustum::PlaneType *planes) const;
     bool isInCell(const Eigen::Vector3d&) const;
 
     bool insertObject(LuminousObject*);
