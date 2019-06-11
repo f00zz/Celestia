@@ -69,7 +69,7 @@ bool AstroObject::removeName(const Name& name, bool updateDB)
 {
     if (!m_db)
     {
-        for(NameInfoSet::iterator it = m_nameInfos.begin(); it != m_nameInfos.end(); it++)
+        for(NameInfoSet::iterator it = m_nameInfos.begin(); it != m_nameInfos.end(); ++it)
         {
             if (it->getCanon() == name)
             {

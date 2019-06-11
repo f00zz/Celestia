@@ -9,7 +9,8 @@
 class OctreeNode
 {
  public:
-    typedef std::array<OctreeNode*, 8> Children;
+    const static int MaxChildren = 8;
+    typedef std::array<OctreeNode*, MaxChildren> Children;
     typedef std::multimap<float, LuminousObject*> ObjectList;
     static constexpr double MaxScale = 100000000000;
     static constexpr size_t MaxObjectsPerNode = 10;

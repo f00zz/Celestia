@@ -22,14 +22,13 @@ OctreeNode::OctreeNode(const Vector3d& cellCenter, double scale, size_t maxObj, 
     m_maxObjCount(maxObj),
     m_parent(parent)
 {
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < MaxChildren; i++)
         m_children[i] = nullptr;
 }
 
 OctreeNode::~OctreeNode()
 {
     for (auto &i : m_children)
-        if (i != nullptr)
             delete i;
 }
 
@@ -39,7 +38,7 @@ bool OctreeNode::add(LuminousObject *obj)
 //     fmt::fprintf(cout, "Adding to node %i object %i with mag %f.\n", this, obj, obj->getAbsoluteMagnitude());
     if (obj == nullptr)
     {
-        cerr << "Octree: adding null object!!\n";
+        cerr << "Octree: trying to add null object!!\n";
         return false;
     }
     m_objects.insert(make_pair(obj->getAbsoluteMagnitude(), obj));
@@ -220,7 +219,7 @@ OctreeNode::ObjectList::const_iterator OctreeNode::objectIterator(const Luminous
             return it;
         if(it == pair.second)
             break;
-        it++;
+        ++it;
     }
     while(it != m_objects.end());
     return m_objects.end();
@@ -245,9 +244,10 @@ LuminousObject *OctreeNode::popBrightest()
     if (m_objects.empty())
         return nullptr;
     auto it = m_objects.begin();
+    LuminousObject *ret = it->second;
     m_objects.erase(it);
     setDirty(true);
-    return it->second;
+    return ret;
 }
 
 LuminousObject *OctreeNode::popFaintest()
@@ -310,10 +310,10 @@ int OctreeNode::check(float max, int level, bool fatal)
             nerr = 1;
         }
     }
-    for(ObjectList::const_iterator it = m_objects.begin(); it != m_objects.end(); it++)
+    for(ObjectList::const_iterator it = m_objects.begin(); it != m_objects.end(); ++it)
     {
         ObjectList::const_iterator it2 = it;
-        it2++;
+        ++it2;
         if (!isInCell(it->second->getPosition()))
         {
             Vector3d rpos = it->second->getPosition() - getCenter();

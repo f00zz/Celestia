@@ -47,7 +47,7 @@ bool CrossIndex::set(AstroCatalog::IndexNumber nr, int shift, size_t length, boo
             if (firstNr(it) < nr)
             {
                 it->second.length = nr - firstNr(it);
-                it++;
+                ++it;
             }
             else
                 it = m_map.erase(it);
@@ -65,7 +65,7 @@ AstroCatalog::IndexNumber CrossIndex::get(AstroCatalog::IndexNumber nr) const
         return AstroCatalog::InvalidIndex;
     CrossIndexMap::const_iterator it = m_map.lower_bound(nr);
     if (it != m_map.begin() && (it == m_map.end() || it->first > nr))
-        it--;
+        --it;
     if (it == m_map.end())
         return AstroCatalog::InvalidIndex;
 //     fmt::fprintf(cout, "%i => [ %i, %i ]\n", it->first, it->second.shift, it->second.length);
