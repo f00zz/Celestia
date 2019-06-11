@@ -20,7 +20,7 @@ bool CrossIndex::set(AstroCatalog::IndexNumber nr, int shift, size_t length, boo
     AstroCatalog::IndexNumber lastnr = nr + length - 1;
     CrossIndexMap::iterator it = m_map.lower_bound(nr);
     if (it != m_map.begin() || (m_map.size() > 0 && firstNr(it) > nr))
-        it--;
+        --it;
     CrossIndexRange last{0, 0};
 
     while(it != m_map.end() && firstNr(it) <= lastnr)
@@ -36,7 +36,7 @@ bool CrossIndex::set(AstroCatalog::IndexNumber nr, int shift, size_t length, boo
             last.length = lastNr(it) - lastnr;
         }
         if (lastNr(it) < nr)
-            it++;
+            ++it;
         else
         {
             if (!overwrite)

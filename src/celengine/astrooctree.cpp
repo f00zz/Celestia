@@ -10,6 +10,11 @@ using namespace celmath;
 
 char* _stack;
 
+static inline bool childValid(int n)
+{
+    return n >= 0 && n < OctreeNode::MaxChildren;
+}
+
 static void dumpObjects(const OctreeNode *node)
 {
     for (const auto &obj : node->getObjects())
@@ -61,6 +66,8 @@ bool OctreeNode::rm(LuminousObject *obj)
 
 OctreeNode *OctreeNode::getChild(int i, bool create)
 {
+    if (!childValid(i))
+        return nullptr;
     if (m_children[i] != nullptr)
         return m_children[i];
 
@@ -93,6 +100,8 @@ bool OctreeNode::createChild(int i)
 
 bool OctreeNode::deleteChild(int n)
 {
+    if (!childValid(n))
+        return false;
     if (m_children[n] == nullptr)
         return false;
     delete m_children[n];
